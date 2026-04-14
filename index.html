@@ -1610,7 +1610,7 @@
           const indicator = CONFIG.indicators[state.indicator];
           const value = locationData ? locationData[state.indicator] : null;
           const displayValue = value !== null && value !== undefined ? 
-            `${value.toFixed(indicator.decimals)} ${indicator.unit}` : 'N/A';
+            `${value.toFixed(indicator.decimals)} ${indicator.unit}` : '-';
           
           // Debug logging
           console.log('Popup click:', { rawCode, normalizedCode, name, locationData, value, currentLevel, expectedCodeProp: CONFIG.codeProperty[currentLevel] });
@@ -1900,7 +1900,7 @@
     // Format value with color
     function formatValue(value, indicatorKey) {
       if (value === null || value === undefined) {
-        return '<span class="na-value">N/A</span>';
+        return '<span class="na-value">-</span>';
       }
       
       const indicator = CONFIG.indicators[indicatorKey];
