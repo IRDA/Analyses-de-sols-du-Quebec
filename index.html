@@ -931,14 +931,14 @@
         zoom: 5,
         minZoom: 4,
         maxZoom: 12,
+        attributionControl: false,
         style: {
           version: 8,
           sources: {
             basemap: {
               type: 'raster',
               tiles: ['https://geoegl.msp.gouv.qc.ca/carto/wmts/1.0.0/carte_gouv_qc_public/default/EPSG_3857/{z}/{y}/{x}'],
-              tileSize: 256,
-              attribution: '© Gouvernement du Québec'
+              tileSize: 256
             }
           },
           layers: [
