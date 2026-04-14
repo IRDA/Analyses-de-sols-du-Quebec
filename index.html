@@ -529,11 +529,6 @@
         display: none !important;
       }
       
-      /* Show mobile actions in sidebar */
-      .sidebar-mobile-actions {
-        display: block !important;
-      }
-      
       .main-content {
         flex-direction: column;
       }
@@ -880,9 +875,15 @@
       fill: currentColor;
     }
     
-    /* Mobile action buttons in sidebar */
+    /* Mobile action buttons in sidebar - hidden by default, shown on mobile */
     .sidebar-mobile-actions {
-      display: none;
+      display: none !important;
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar-mobile-actions {
+        display: block !important;
+      }
     }
     
     .mobile-action-buttons {
