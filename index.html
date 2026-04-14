@@ -915,18 +915,26 @@
           if (!feature) return;
           
           const props = feature.properties;
-          const code = props[CONFIG.codeProperty[level]];
-          const nameFromPmtiles = props[CONFIG.nameProperty[level]];
+          // Use the current state level to get the correct code property
+          const currentLevel = state.level;
+          const rawCode = props[CONFIG.codeProperty[currentLevel]];
+          const nameFromPmtiles = props[CONFIG.nameProperty[currentLevel]];
+          
+          // Normalize the code for data lookup
+          const normalizedCode = normalizeCode(rawCode);
           
           // Get name from our data or PMTiles
-          const name = getName(level, code) || nameFromPmtiles || code;
+          const name = getName(currentLevel, normalizedCode) || nameFromPmtiles || normalizedCode;
           
           // Get data for this location
-          const locationData = getLocationData(code);
+          const locationData = getLocationData(normalizedCode);
           const indicator = CONFIG.indicators[state.indicator];
           const value = locationData ? locationData[state.indicator] : null;
           const displayValue = value !== null && value !== undefined ? 
             `${value.toFixed(indicator.decimals)} ${indicator.unit}` : 'N/A';
+          
+          // Debug logging
+          console.log('Popup click:', { rawCode, normalizedCode, name, locationData, value, currentLevel });
           
           new maplibregl.Popup({ closeButton: true, maxWidth: '250px' })
             .setLngLat(e.lngLat)
@@ -943,8 +951,21 @@
       });
     }
     
+    // Normalize code to string with leading zeros for comparison
+    function normalizeCode(code) {
+      if (code === null || code === undefined) return null;
+      // Convert to string and pad with leading zero if needed (codes are 2 digits)
+      const str = String(code);
+      return str.length === 1 ? '0' + str : str;
+    }
+    
     // Get name for a code
     function getName(level, code) {
+      const normalizedCode = normalizeCode(code);
+      if (state.names && state.names[level] && state.names[level][normalizedCode]) {
+        return state.names[level][normalizedCode];
+      }
+      // Also try with original code in case it's already normalized
       if (state.names && state.names[level] && state.names[level][code]) {
         return state.names[level][code];
       }
@@ -959,10 +980,12 @@
       
       if (!statData) return null;
       
+      const normalizedCode = normalizeCode(code);
+      
       if (state.year === 'all') {
-        return statData.find(d => d.code === code);
+        return statData.find(d => normalizeCode(d.code) === normalizedCode);
       } else {
-        return statData.find(d => d.code === code && d.Annee === state.year);
+        return statData.find(d => normalizeCode(d.code) === normalizedCode && String(d.Annee) === String(state.year));
       }
     }
     
@@ -997,7 +1020,9 @@
       // Filter by year if needed
       const filteredData = state.year === 'all' ? 
         statData : 
-        statData.filter(d => d.Annee === state.year);
+        statData.filter(d => String(d.Annee) === String(state.year));
+      
+      console.log('updateMapStyle:', { level: state.level, statKey, year: state.year, dataCount: filteredData.length });
       
       // Create color expression
       const indicator = CONFIG.indicators[state.indicator];
@@ -1008,19 +1033,41 @@
       const codeProperty = CONFIG.codeProperty[state.level];
       
       // Create color mapping
+      // PMTiles may have codes as numbers OR strings - we need to handle both
       const colorStops = [];
       filteredData.forEach(d => {
         const value = d[state.indicator];
         if (value !== null && value !== undefined) {
           const color = getColorForValue(value, bins, colors);
-          colorStops.push(d.code);
+          // Add both string version (with and without leading zero) and number version
+          const codeStr = String(d.code);
+          const codeNum = parseInt(d.code, 10);
+          
+          // String with leading zero (e.g., "01")
+          colorStops.push(codeStr);
           colorStops.push(color);
+          
+          // Number version (e.g., 1)
+          if (!isNaN(codeNum)) {
+            colorStops.push(codeNum);
+            colorStops.push(color);
+          }
+          
+          // String without leading zero (e.g., "1") if different
+          const codeStrNoZero = String(codeNum);
+          if (codeStrNoZero !== codeStr) {
+            colorStops.push(codeStrNoZero);
+            colorStops.push(color);
+          }
         }
       });
       
       if (colorStops.length > 0) {
         const colorExpression = ['match', ['get', codeProperty], ...colorStops, '#cccccc'];
+        console.log('Color expression created with', colorStops.length / 2, 'entries for property', codeProperty);
         state.map.setPaintProperty(`${state.level}-fill`, 'fill-color', colorExpression);
+      } else {
+        console.warn('No color stops created - check data');
       }
     }
     
