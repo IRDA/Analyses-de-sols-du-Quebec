@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Analyse des sols du Québec (2007-2024)</title>
+  
+  <!-- MapLibre GL -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #002752;
+      --secondary: #AED136;
+      --bg-light: #f8f9fa;
+      --border-color: #dee2e6;
+      --text-dark: #212529;
+      --text-muted: #6c757d;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+      --radius: 8px;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-dark);
+      overflow: hidden;
+    }
+    
+    /* Layout principal */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--primary);
+      color: white;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: var(--shadow);
+      z-index: 100;
+    }
+    
+    .header h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .header-logos {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    
+    .header-logos a {
+      display: flex;
+      align-items: center;
+    }
+    
+    .header-logos img {
+      height: 26px;
+      filter: brightness(0) invert(1);
+    }
+    
+    .header-logos img.irda-logo {
+      height: 20px;
+    }
+    
+    /* Main content */
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: white;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    
+    .sidebar-section {
+      padding: 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .sidebar-section:last-child {
+      border-bottom: none;
+    }
+    
+    .sidebar-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    
+    /* Form controls */
+    .form-group {
+      margin-bottom: 10px;
+    }
+    
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+    
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: var(--text-dark);
+    }
+    
+    select, input[type="text"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+    
+    select:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 39, 82, 0.1);
+    }
+    
+    /* Toggle buttons */
+    .toggle-group {
+      display: flex;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    
+    .toggle-btn {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      background: white;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    .toggle-btn:not(:last-child) {
+      border-right: 1px solid var(--border-color);
+    }
+    
+    .toggle-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .toggle-btn:hover:not(.active) {
+      background: var(--bg-light);
+    }
+    
+    /* Map container */
+    .map-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    #map {
+      flex: 1;
+      min-height: 250px;
+    }
+    
+    /* Table container */
+    .table-container {
+      height: 35%;
+      min-height: 180px;
+      max-height: 350px;
+      background: white;
+      border-top: 1px solid var(--border-color);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .table-header {
+      padding: 10px 14px;
+      background: var(--bg-light);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 10px;
+    }
+    
+    .table-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    .search-input {
+      flex: 1;
+      max-width: 200px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      background-image: none;
+      padding-right: 10px;
+    }
+    
+    .table-scroll {
+      flex: 1;
+      overflow: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--primary);
+      color: white;
+      padding: 9px 10px;
+      text-align: left;
+      font-weight: 500;
+      white-space: nowrap;
+      z-index: 10;
+    }
+    
+    th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 11;
+    }
+    
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    
+    td:first-child {
+      position: sticky;
+      left: 0;
+      background: white;
+      font-weight: 500;
+      z-index: 5;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    tr:hover td {
+      background: rgba(174, 209, 54, 0.1);
+    }
+    
+    tr:hover td:first-child {
+      background: rgba(174, 209, 54, 0.2);
+    }
+    
+    tr.selected td {
+      background: rgba(0, 39, 82, 0.1);
+    }
+    
+    tr.selected td:first-child {
+      background: rgba(0, 39, 82, 0.15);
+    }
+    
+    .cell-value {
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      min-width: 50px;
+      text-align: center;
+      font-size: 0.75rem;
+    }
+    
+    /* Legend */
+    .legend {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      z-index: 10;
+      max-width: 160px;
+      font-size: 0.75rem;
+    }
+    
+    .legend-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    
+    .legend-color {
+      width: 18px;
+      height: 12px;
+      margin-right: 6px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    
+    /* Logos on map */
+    .map-logos {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 10;
+    }
+    
+    .map-logo {
+      background: white;
+      padding: 5px 8px;
+      border-radius: 4px;
+      box-shadow: var(--shadow);
+    }
+    
+    .map-logo img {
+      height: 20px;
+      display: block;
+    }
+    
+    /* Loading state */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 16px 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* NA values */
+    .na-value {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    
+    /* Download button */
+    .btn-download {
+      background: var(--secondary);
+      color: var(--primary);
+      border: none;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+      font-family: inherit;
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .btn-download:hover {
+      background: #9bc12e;
+    }
+    
+    /* Mobile menu toggle */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      margin-right: 10px;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .mobile-menu-btn {
+        display: block;
+      }
+      
+      .header h1 {
+        font-size: 0.9rem;
+      }
+      
+      .header-logos img {
+        height: 20px;
+      }
+      
+      .header-logos img.irda-logo {
+        height: 16px;
+      }
+      
+      .main-content {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        position: fixed;
+        top: 46px;
+        left: 0;
+        right: 0;
+        width: 100%;
+        z-index: 99;
+        transform: translateY(-100%);
+        transition: transform 0.3s ease;
+        max-height: calc(100vh - 46px);
+        max-height: calc(100dvh - 46px);
+        border-right: none;
+        border-bottom: 2px solid var(--primary);
+        box-shadow: var(--shadow);
+      }
+      
+      .sidebar.open {
+        transform: translateY(0);
+      }
+      
+      .map-container {
+        flex: 1;
+      }
+      
+      .table-container {
+        height: 40%;
+        min-height: 150px;
+      }
+      
+      .search-input {
+        max-width: 140px;
+      }
+      
+      .legend {
+        max-width: 140px;
+        padding: 8px;
+        top: 8px;
+        right: 8px;
+      }
+      
+      .legend-title {
+        font-size: 0.7rem;
+      }
+      
+      .legend-item {
+        font-size: 0.65rem;
+      }
+      
+      td:first-child {
+        max-width: 120px;
+      }
+    }
+    
+    /* Popup style */
+    .maplibregl-popup-content {
+      padding: 0 !important;
+      border-radius: var(--radius) !important;
+      box-shadow: var(--shadow) !important;
+    }
+    
+    .popup-content {
+      padding: 10px 12px;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .popup-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--primary);
+    }
+    
+    .popup-indicator {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    
+    .popup-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .popup-count {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div style="display: flex; align-items: center;">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu">&#9776;</button>
+        <h1>Analyse des sols du Québec (2007-2024)</h1>
+      </div>
+      <div class="header-logos">
+        <a href="https://www.quebec.ca/" target="_blank" rel="noopener">
+          <img src="https://www.foretouverte.gouv.qc.ca/particular/images/QUEB.png" alt="Québec">
+        </a>
+        <a href="https://www.irda.qc.ca/" target="_blank" rel="noopener">
+          <img src="https://irda.qc.ca/dist/assets/logos/logo-irda-color.svg" alt="IRDA" class="irda-logo">
+        </a>
+      </div>
+    </header>
+    
+    <!-- Main content -->
+    <div class="main-content">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-title">Niveau géographique</div>
+          <div class="toggle-group">
+            <button class="toggle-btn active" data-level="region" onclick="setLevel('region')">Région</button>
+            <button class="toggle-btn" data-level="mrc" onclick="setLevel('mrc')">MRC</button>
+          </div>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-title">Indicateur</div>
+          <div class="form-group">
+            <select id="indicator-select" onchange="updateIndicator()">
+              <option value="Phosphore">Phosphore (kg/ha)</option>
+              <option value="ISP1">Indice saturation P (%)</option>
+              <option value="pH_eau">pH eau</option>
+              <option value="Besoin_en_chaux">Besoin en chaux (t/ha)</option>
+              <option value="Matiere_organique">Matière organique (%)</option>
+              <option value="MO4">Analyses >= 4% MO (%)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-title">Statistique</div>
+          <div class="toggle-group">
+            <button class="toggle-btn active" data-stat="mediane" onclick="setStat('mediane')">Médiane</button>
+            <button class="toggle-btn" data-stat="moyenne" onclick="setStat('moyenne')">Moyenne</button>
+          </div>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-title">Période</div>
+          <div class="form-group">
+            <select id="year-select" onchange="updateYear()">
+              <option value="all">Toutes les années</option>
+              <option value="2007">2007</option>
+              <option value="2009">2009</option>
+              <option value="2011">2011</option>
+              <option value="2013">2013</option>
+              <option value="2015">2015</option>
+              <option value="2017">2017</option>
+              <option value="2018">2018</option>
+              <option value="2019">2019</option>
+              <option value="2020">2020</option>
+              <option value="2021">2021</option>
+              <option value="2022">2022</option>
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="sidebar-section">
+          <button class="btn-download" onclick="downloadCSV()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Télécharger CSV
+          </button>
+        </div>
+      </aside>
+      
+      <!-- Map and table -->
+      <div class="map-container">
+        <div id="map">
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>Chargement...</span>
+          </div>
+          
+          <!-- Legend -->
+          <div class="legend" id="legend">
+            <div class="legend-title" id="legend-title">Phosphore (kg/ha)</div>
+            <div id="legend-items"></div>
+          </div>
+          
+          <!-- Logos -->
+          <div class="map-logos">
+            <a href="https://www.quebec.ca/" target="_blank" rel="noopener" class="map-logo">
+              <img src="https://www.foretouverte.gouv.qc.ca/particular/images/QUEB.png" alt="Québec">
+            </a>
+            <a href="https://www.irda.qc.ca/" target="_blank" rel="noopener" class="map-logo">
+              <img src="https://irda.qc.ca/dist/assets/logos/logo-irda-color.svg" alt="IRDA">
+            </a>
+          </div>
+        </div>
+        
+        <!-- Table -->
+        <div class="table-container">
+          <div class="table-header">
+            <span class="table-title" id="table-title">Données par région</span>
+            <input type="text" class="search-input" placeholder="Rechercher..." id="search-input" oninput="filterTable()">
+          </div>
+          <div class="table-scroll">
+            <table id="data-table">
+              <thead>
+                <tr id="table-head"></tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/pmtiles@3.2.1/dist/pmtiles.js"></script>
+  
+  <script>
+    // Configuration
+    const CONFIG = {
+      baseUrl: './',
+      pmtilesUrl: {
+        mrc: './mrc.pmtiles',
+        region: './region.pmtiles'
+      },
+      // Source layer names in PMTiles
+      sourceLayer: {
+        mrc: 'MRC',
+        region: 'Region'
+      },
+      // Property names for codes in PMTiles
+      codeProperty: {
+        mrc: 'MRS_CO_MRC',
+        region: 'RES_CO_REG'
+      },
+      nameProperty: {
+        mrc: 'MRS_NM_MRC',
+        region: 'RES_NM_REG'
+      },
+      indicators: {
+        Phosphore: { label: 'Phosphore (kg/ha)', unit: 'kg/ha', bins: [0, 50, 100, 150, 200, 250, 500], reverse: false, decimals: 0 },
+        ISP1: { label: 'Indice saturation P (%)', unit: '%', bins: [0, 1, 2, 3, 4, 5, 6, 10], reverse: false, decimals: 1 },
+        pH_eau: { label: 'pH eau', unit: '', bins: [4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8], reverse: false, decimals: 2 },
+        Besoin_en_chaux: { label: 'Besoin en chaux (t/ha)', unit: 't/ha', bins: [0, 2, 4, 6, 8, 10, 15], reverse: true, decimals: 1 },
+        Matiere_organique: { label: 'Matière organique (%)', unit: '%', bins: [0, 2, 3, 4, 5, 6, 8, 12], reverse: false, decimals: 1 },
+        MO4: { label: 'Analyses >= 4% MO (%)', unit: '%', bins: [0, 20, 40, 60, 80, 100], reverse: false, decimals: 0 }
+      },
+      colors: {
+        default: ['#d73027', '#fc8d59', '#fee08b', '#d9ef8b', '#91cf60', '#1a9850'],
+        reversed: ['#1a9850', '#91cf60', '#d9ef8b', '#fee08b', '#fc8d59', '#d73027']
+      }
+    };
+    
+    // State
+    let state = {
+      level: 'region',
+      indicator: 'Phosphore',
+      stat: 'mediane',
+      year: 'all',
+      data: null,
+      names: null,
+      map: null,
+      selectedCode: null
+    };
+    
+    // Initialize
+    async function init() {
+      try {
+        // Load data
+        const response = await fetch(CONFIG.baseUrl + 'data.json');
+        const jsonData = await response.json();
+        
+        state.data = {
+          mrc: jsonData.mrc,
+          region: jsonData.region
+        };
+        state.names = jsonData.noms;
+        
+        console.log('Data loaded:', Object.keys(state.data));
+        console.log('Names loaded:', Object.keys(state.names));
+        
+        // Initialize map
+        initMap();
+        
+      } catch (error) {
+        console.error('Error initializing:', error);
+        document.getElementById('loading').innerHTML = '<span style="color: red;">Erreur de chargement</span>';
+      }
+    }
+    
+    // Initialize MapLibre map with PMTiles
+    function initMap() {
+      const protocol = new pmtiles.Protocol();
+      maplibregl.addProtocol('pmtiles', protocol.tile);
+      
+      state.map = new maplibregl.Map({
+        container: 'map',
+        center: [-72, 47],
+        zoom: 5,
+        minZoom: 4,
+        maxZoom: 12,
+        style: {
+          version: 8,
+          sources: {
+            basemap: {
+              type: 'raster',
+              tiles: ['https://geoegl.msp.gouv.qc.ca/carto/wmts/1.0.0/carte_gouv_qc_public/default/EPSG_3857/{z}/{y}/{x}'],
+              tileSize: 256,
+              attribution: '© Gouvernement du Québec'
+            }
+          },
+          layers: [
+            {
+              id: 'basemap',
+              type: 'raster',
+              source: 'basemap'
+            }
+          ]
+        }
+      });
+      
+      state.map.addControl(new maplibregl.NavigationControl(), 'top-left');
+      state.map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
+      
+      state.map.on('load', () => {
+        console.log('Map loaded');
+        addPMTilesSources();
+      });
+    }
+    
+    // Add PMTiles sources
+    function addPMTilesSources() {
+      // Add MRC source
+      state.map.addSource('mrc', {
+        type: 'vector',
+        url: `pmtiles://${CONFIG.pmtilesUrl.mrc}`
+      });
+      
+      // Add Region source
+      state.map.addSource('region', {
+        type: 'vector',
+        url: `pmtiles://${CONFIG.pmtilesUrl.region}`
+      });
+      
+      console.log('PMTiles sources added');
+      
+      // Add layers
+      addLayers();
+    }
+    
+    // Add map layers
+    function addLayers() {
+      // MRC fill layer
+      state.map.addLayer({
+        id: 'mrc-fill',
+        type: 'fill',
+        source: 'mrc',
+        'source-layer': CONFIG.sourceLayer.mrc,
+        paint: {
+          'fill-color': '#cccccc',
+          'fill-opacity': 0.75
+        },
+        layout: { visibility: 'none' }
+      });
+      
+      // MRC outline layer
+      state.map.addLayer({
+        id: 'mrc-outline',
+        type: 'line',
+        source: 'mrc',
+        'source-layer': CONFIG.sourceLayer.mrc,
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': 0.8
+        },
+        layout: { visibility: 'none' }
+      });
+      
+      // Region fill layer
+      state.map.addLayer({
+        id: 'region-fill',
+        type: 'fill',
+        source: 'region',
+        'source-layer': CONFIG.sourceLayer.region,
+        paint: {
+          'fill-color': '#cccccc',
+          'fill-opacity': 0.75
+        },
+        layout: { visibility: 'visible' }
+      });
+      
+      // Region outline layer
+      state.map.addLayer({
+        id: 'region-outline',
+        type: 'line',
+        source: 'region',
+        'source-layer': CONFIG.sourceLayer.region,
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': 1.2
+        },
+        layout: { visibility: 'visible' }
+      });
+      
+      console.log('Layers added');
+      
+      // Setup interactions
+      setupInteractions();
+      
+      // Initial render
+      document.getElementById('loading').style.display = 'none';
+      updateView();
+    }
+    
+    // Setup map interactions
+    function setupInteractions() {
+      ['mrc', 'region'].forEach(level => {
+        const layerId = `${level}-fill`;
+        
+        // Hover effect
+        state.map.on('mouseenter', layerId, () => {
+          state.map.getCanvas().style.cursor = 'pointer';
+        });
+        
+        state.map.on('mouseleave', layerId, () => {
+          state.map.getCanvas().style.cursor = '';
+        });
+        
+        // Click popup
+        state.map.on('click', layerId, (e) => {
+          const feature = e.features[0];
+          if (!feature) return;
+          
+          const props = feature.properties;
+          const code = props[CONFIG.codeProperty[level]];
+          const nameFromPmtiles = props[CONFIG.nameProperty[level]];
+          
+          // Get name from our data or PMTiles
+          const name = getName(level, code) || nameFromPmtiles || code;
+          
+          // Get data for this location
+          const locationData = getLocationData(code);
+          const indicator = CONFIG.indicators[state.indicator];
+          const value = locationData ? locationData[state.indicator] : null;
+          const displayValue = value !== null && value !== undefined ? 
+            `${value.toFixed(indicator.decimals)} ${indicator.unit}` : 'N/A';
+          
+          new maplibregl.Popup({ closeButton: true, maxWidth: '250px' })
+            .setLngLat(e.lngLat)
+            .setHTML(`
+              <div class="popup-content">
+                <div class="popup-title">${name}</div>
+                <div class="popup-indicator">${indicator.label}</div>
+                <div class="popup-value">${displayValue}</div>
+                ${locationData && locationData.n ? `<div class="popup-count">${formatNumber(locationData.n)} analyses</div>` : ''}
+              </div>
+            `)
+            .addTo(state.map);
+        });
+      });
+    }
+    
+    // Get name for a code
+    function getName(level, code) {
+      if (state.names && state.names[level] && state.names[level][code]) {
+        return state.names[level][code];
+      }
+      return null;
+    }
+    
+    // Get location data
+    function getLocationData(code) {
+      const levelData = state.data[state.level];
+      const statKey = state.year === 'all' ? `${state.stat}_all` : state.stat;
+      const statData = levelData[statKey];
+      
+      if (!statData) return null;
+      
+      if (state.year === 'all') {
+        return statData.find(d => d.code === code);
+      } else {
+        return statData.find(d => d.code === code && d.Annee === state.year);
+      }
+    }
+    
+    // Update view
+    function updateView() {
+      updateMapStyle();
+      updateLegend();
+      updateTable();
+    }
+    
+    // Update map style
+    function updateMapStyle() {
+      if (!state.map || !state.map.getLayer('mrc-fill')) return;
+      
+      // Toggle layer visibility
+      ['mrc', 'region'].forEach(level => {
+        const visibility = level === state.level ? 'visible' : 'none';
+        state.map.setLayoutProperty(`${level}-fill`, 'visibility', visibility);
+        state.map.setLayoutProperty(`${level}-outline`, 'visibility', visibility);
+      });
+      
+      // Get data for current selection
+      const levelData = state.data[state.level];
+      const statKey = state.year === 'all' ? `${state.stat}_all` : state.stat;
+      const statData = levelData[statKey];
+      
+      if (!statData) {
+        console.warn('No data for:', state.level, statKey);
+        return;
+      }
+      
+      // Filter by year if needed
+      const filteredData = state.year === 'all' ? 
+        statData : 
+        statData.filter(d => d.Annee === state.year);
+      
+      // Create color expression
+      const indicator = CONFIG.indicators[state.indicator];
+      const bins = indicator.bins;
+      const colors = indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default;
+      
+      // Build match expression for PMTiles
+      const codeProperty = CONFIG.codeProperty[state.level];
+      
+      // Create color mapping
+      const colorStops = [];
+      filteredData.forEach(d => {
+        const value = d[state.indicator];
+        if (value !== null && value !== undefined) {
+          const color = getColorForValue(value, bins, colors);
+          colorStops.push(d.code);
+          colorStops.push(color);
+        }
+      });
+      
+      if (colorStops.length > 0) {
+        const colorExpression = ['match', ['get', codeProperty], ...colorStops, '#cccccc'];
+        state.map.setPaintProperty(`${state.level}-fill`, 'fill-color', colorExpression);
+      }
+    }
+    
+    // Get color for value
+    function getColorForValue(value, bins, colors) {
+      for (let i = 0; i < bins.length - 1; i++) {
+        if (value >= bins[i] && value < bins[i + 1]) {
+          return colors[Math.min(i, colors.length - 1)];
+        }
+      }
+      return colors[colors.length - 1];
+    }
+    
+    // Update legend
+    function updateLegend() {
+      const indicator = CONFIG.indicators[state.indicator];
+      const bins = indicator.bins;
+      const colors = indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default;
+      
+      document.getElementById('legend-title').textContent = indicator.label;
+      
+      const legendItems = document.getElementById('legend-items');
+      legendItems.innerHTML = '';
+      
+      for (let i = 0; i < bins.length - 1; i++) {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        const isLast = i === bins.length - 2;
+        const label = isLast ? 
+          `> ${bins[i]} ${indicator.unit}` : 
+          `${bins[i]} - ${bins[i + 1]} ${indicator.unit}`;
+        item.innerHTML = `
+          <div class="legend-color" style="background: ${colors[Math.min(i, colors.length - 1)]}"></div>
+          <span>${label}</span>
+        `;
+        legendItems.appendChild(item);
+      }
+    }
+    
+    // Update table
+    function updateTable() {
+      const levelData = state.data[state.level];
+      const statKey = state.year === 'all' ? `${state.stat}_all` : state.stat;
+      const statData = levelData[statKey];
+      
+      if (!statData) {
+        console.warn('No table data for:', state.level, statKey);
+        return;
+      }
+      
+      // Get data
+      let tableData = state.year === 'all' ? 
+        statData : 
+        statData.filter(d => d.Annee === state.year);
+      
+      // Sort by name
+      tableData = [...tableData].sort((a, b) => {
+        const nameA = getName(state.level, a.code) || a.code;
+        const nameB = getName(state.level, b.code) || b.code;
+        return nameA.localeCompare(nameB, 'fr');
+      });
+      
+      // Update table title
+      const levelName = state.level === 'region' ? 'région' : 'MRC';
+      document.getElementById('table-title').textContent = `Données par ${levelName}`;
+      
+      // Build table header
+      const thead = document.getElementById('table-head');
+      thead.innerHTML = `
+        <th>Nom</th>
+        <th>N</th>
+        <th>P</th>
+        <th>ISP</th>
+        <th>pH</th>
+        <th>Chaux</th>
+        <th>MO</th>
+        <th>MO4%</th>
+      `;
+      
+      // Build table body
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      
+      tableData.forEach(row => {
+        const name = getName(state.level, row.code) || row.code;
+        const tr = document.createElement('tr');
+        tr.dataset.code = row.code;
+        tr.onclick = () => selectRow(row.code);
+        tr.innerHTML = `
+          <td title="${name}">${name}</td>
+          <td>${row.n ? formatNumber(row.n) : '<span class="na-value">N/A</span>'}</td>
+          <td>${formatValue(row.Phosphore, 'Phosphore')}</td>
+          <td>${formatValue(row.ISP1, 'ISP1')}</td>
+          <td>${formatValue(row.pH_eau, 'pH_eau')}</td>
+          <td>${formatValue(row.Besoin_en_chaux, 'Besoin_en_chaux')}</td>
+          <td>${formatValue(row.Matiere_organique, 'Matiere_organique')}</td>
+          <td>${formatValue(row.MO4, 'MO4')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    
+    // Format number with spaces
+    function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+    
+    // Format value with color
+    function formatValue(value, indicatorKey) {
+      if (value === null || value === undefined) {
+        return '<span class="na-value">N/A</span>';
+      }
+      
+      const indicator = CONFIG.indicators[indicatorKey];
+      const bins = indicator.bins;
+      const colors = indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default;
+      const color = getColorForValue(value, bins, colors);
+      const textColor = getContrastColor(color);
+      
+      return `<span class="cell-value" style="background: ${color}; color: ${textColor}">${value.toFixed(indicator.decimals)}</span>`;
+    }
+    
+    // Get contrast color for text
+    function getContrastColor(hexColor) {
+      const r = parseInt(hexColor.slice(1, 3), 16);
+      const g = parseInt(hexColor.slice(3, 5), 16);
+      const b = parseInt(hexColor.slice(5, 7), 16);
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.5 ? '#000' : '#fff';
+    }
+    
+    // Select row
+    function selectRow(code) {
+      state.selectedCode = code;
+      document.querySelectorAll('#table-body tr').forEach(tr => {
+        tr.classList.toggle('selected', tr.dataset.code === code);
+      });
+    }
+    
+    // Filter table
+    function filterTable() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const rows = document.querySelectorAll('#table-body tr');
+      
+      rows.forEach(row => {
+        const name = row.cells[0].textContent.toLowerCase();
+        row.style.display = name.includes(searchTerm) ? '' : 'none';
+      });
+    }
+    
+    // Set level (region/mrc)
+    function setLevel(level) {
+      state.level = level;
+      state.selectedCode = null;
+      document.querySelectorAll('[data-level]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.level === level);
+      });
+      updateView();
+      closeSidebarOnMobile();
+    }
+    
+    // Set stat (mediane/moyenne)
+    function setStat(stat) {
+      state.stat = stat;
+      document.querySelectorAll('[data-stat]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.stat === stat);
+      });
+      updateView();
+      closeSidebarOnMobile();
+    }
+    
+    // Update indicator
+    function updateIndicator() {
+      state.indicator = document.getElementById('indicator-select').value;
+      updateView();
+      closeSidebarOnMobile();
+    }
+    
+    // Update year
+    function updateYear() {
+      state.year = document.getElementById('year-select').value;
+      updateView();
+      closeSidebarOnMobile();
+    }
+    
+    // Download CSV
+    function downloadCSV() {
+      const levelData = state.data[state.level];
+      const statKey = state.year === 'all' ? `${state.stat}_all` : state.stat;
+      const statData = levelData[statKey];
+      
+      if (!statData) return;
+      
+      let tableData = state.year === 'all' ? statData : statData.filter(d => d.Annee === state.year);
+      
+      // Build CSV content
+      const headers = ['Nom', 'Code', 'N', 'Phosphore', 'ISP', 'pH', 'Chaux', 'MO', 'MO4'];
+      const rows = tableData.map(row => {
+        const name = getName(state.level, row.code) || row.code;
+        return [
+          `"${name}"`,
+          row.code,
+          row.n || '',
+          row.Phosphore !== null ? row.Phosphore.toFixed(2) : '',
+          row.ISP1 !== null ? row.ISP1.toFixed(2) : '',
+          row.pH_eau !== null ? row.pH_eau.toFixed(2) : '',
+          row.Besoin_en_chaux !== null ? row.Besoin_en_chaux.toFixed(2) : '',
+          row.Matiere_organique !== null ? row.Matiere_organique.toFixed(2) : '',
+          row.MO4 !== null ? row.MO4.toFixed(2) : ''
+        ].join(';');
+      });
+      
+      const csv = '\uFEFF' + [headers.join(';'), ...rows].join('\n');
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `analyse_sols_${state.level}_${state.stat}_${state.year}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      closeSidebarOnMobile();
+    }
+    
+    // Toggle sidebar (mobile)
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+    
+    // Close sidebar on mobile after action
+    function closeSidebarOnMobile() {
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    }
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', init);
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        if (!sidebar.contains(e.target) && !menuBtn.contains(e.target) && sidebar.classList.contains('open')) {
+          sidebar.classList.remove('open');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
