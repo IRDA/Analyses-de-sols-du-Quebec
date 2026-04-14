@@ -1170,7 +1170,7 @@
       
       // Build table header with "Toutes" column first, then years
       const thead = document.getElementById('table-head');
-      let headerHtml = '<th>Nom</th><th>Dernière</th>';
+      let headerHtml = '<th>Nom</th><th>Toutes</th>';
       allYears.forEach(year => {
         headerHtml += `<th>${year}</th>`;
       });
@@ -1186,7 +1186,7 @@
         tr.dataset.code = code;
         tr.onclick = () => selectRow(code);
         
-        // "Dernière année" column (most recent value)
+        // "Toutes les années" column (most recent value, same as map when "all" is selected)
         const latestData = latestByCode[code];
         const latestValue = latestData ? latestData[state.indicator] : null;
         
