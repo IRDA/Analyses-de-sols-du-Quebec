@@ -524,6 +524,16 @@
         height: 16px;
       }
       
+      /* Hide lang and info buttons in header on mobile */
+      .btn-lang, .btn-info {
+        display: none;
+      }
+      
+      /* Show mobile actions in sidebar */
+      .sidebar-mobile-actions {
+        display: block;
+      }
+      
       .main-content {
         flex-direction: column;
       }
@@ -869,6 +879,42 @@
       border-left: 3px solid var(--secondary);
       fill: currentColor;
     }
+    
+    /* Mobile action buttons in sidebar */
+    .sidebar-mobile-actions {
+      display: none;
+    }
+    
+    .mobile-action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .btn-action {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      background: white;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      color: var(--text-dark);
+    }
+    
+    .btn-action:hover {
+      background: var(--bg-light);
+      border-color: var(--primary);
+    }
+    
+    .btn-action svg {
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -1006,6 +1052,28 @@
             </svg>
             Télécharger CSV
           </button>
+        </div>
+        
+        <!-- Mobile only: Language and Info -->
+        <div class="sidebar-section sidebar-mobile-actions">
+          <div class="mobile-action-buttons">
+            <button class="btn-action" id="btn-lang-mobile" onclick="toggleLanguage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <span id="btn-lang-mobile-text">English</span>
+            </button>
+            <button class="btn-action" onclick="openInfoModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span id="btn-info-mobile-text">À propos</span>
+            </button>
+          </div>
         </div>
       </aside>
       
@@ -1215,7 +1283,11 @@
         byMRC: 'par MRC',
         // Mobile tabs
         tabMap: 'Carte',
-        tabTable: 'Tableau'
+        tabTable: 'Tableau',
+        // Mobile sidebar actions
+        switchToEnglish: 'English',
+        switchToFrench: 'Français',
+        about: 'À propos'
       },
       en: {
         title: 'Quebec Soil Analysis (2007-2024)',
@@ -1294,7 +1366,11 @@
         byMRC: 'by RCM',
         // Mobile tabs
         tabMap: 'Map',
-        tabTable: 'Table'
+        tabTable: 'Table',
+        // Mobile sidebar actions
+        switchToEnglish: 'English',
+        switchToFrench: 'Français',
+        about: 'About'
       }
     };
     
@@ -2035,6 +2111,7 @@
       state.lang = state.lang === 'fr' ? 'en' : 'fr';
       document.getElementById('btn-lang').textContent = state.lang === 'fr' ? 'EN' : 'FR';
       updateAllTexts();
+      closeSidebarOnMobile();
     }
     
     // Update all texts based on current language
@@ -2123,6 +2200,10 @@
       // Mobile tabs
       document.getElementById('tab-map-text').textContent = t('tabMap');
       document.getElementById('tab-table-text').textContent = t('tabTable');
+      
+      // Mobile sidebar actions
+      document.getElementById('btn-lang-mobile-text').textContent = state.lang === 'fr' ? t('switchToEnglish') : t('switchToFrench');
+      document.getElementById('btn-info-mobile-text').textContent = t('about');
     }
     
     // Update indicator select with translated labels
