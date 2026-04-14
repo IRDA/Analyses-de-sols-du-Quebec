@@ -1778,8 +1778,12 @@
       }
       
       // Show indicator note if available
-      if (indicator.note) {
-        indicatorNote.textContent = indicator.note;
+      if (indicator.moyenneOnly) {
+        if (state.indicator === 'Besoin_en_chaux') {
+          indicatorNote.textContent = t('noteChaux');
+        } else if (state.indicator === 'MO4') {
+          indicatorNote.textContent = t('noteMO4');
+        }
         indicatorNote.style.display = 'block';
       } else {
         indicatorNote.style.display = 'none';
