@@ -546,28 +546,40 @@
       
       /* Hide table by default on mobile, show map */
       .table-container {
-        display: none;
-        height: 100%;
+        display: none !important;
+      }
+      
+      .table-container.mobile-visible {
+        display: flex !important;
+        flex: 1;
+        height: auto;
         min-height: 0;
         max-height: none;
         border-top: none;
       }
       
-      .table-container.mobile-visible {
-        display: flex;
-        flex: 1;
-      }
-      
       .map-container.mobile-hidden {
-        display: none;
+        display: none !important;
       }
       
       #map {
         min-height: 0;
       }
       
+      .table-header {
+        padding: 8px 10px;
+      }
+      
+      .table-title {
+        font-size: 0.75rem;
+        white-space: normal;
+        line-height: 1.2;
+      }
+      
       .search-input {
-        max-width: 140px;
+        max-width: 100px;
+        padding: 5px 8px;
+        font-size: 0.75rem;
       }
       
       .legend {
@@ -1301,6 +1313,28 @@
       return t('label' + indicatorKey) || CONFIG.indicators[indicatorKey].label;
     }
     
+    // Get short indicator label for mobile
+    function getIndicatorShortLabel(indicatorKey) {
+      const shortLabels = {
+        'Phosphore': 'P',
+        'Potassium': 'K', 
+        'Calcium': 'Ca',
+        'Magnesium': 'Mg',
+        'Aluminium': 'Al',
+        'Manganese': 'Mn',
+        'Cuivre': 'Cu',
+        'Fer': 'Fe',
+        'ISP1': 'ISP',
+        'pH_eau': 'pH',
+        'pH_tampon': 'pH tampon',
+        'Besoin_en_chaux': state.lang === 'fr' ? 'Chaux' : 'Lime',
+        'Matiere_organique': 'MO',
+        'MO4': 'MO >= 4%',
+        'Capacite_dechange_cationique': 'CEC'
+      };
+      return shortLabels[indicatorKey] || indicatorKey;
+    }
+    
     // Initialize
     async function init() {
       try {
@@ -1729,9 +1763,11 @@
         return nameA.localeCompare(nameB, 'fr');
       });
       
-      // Update table title with indicator name
+      // Update table title with indicator name (short on mobile)
       const levelName = state.level === 'region' ? t('byRegion') : t('byMRC');
-      document.getElementById('table-title').textContent = `${getIndicatorLabel(state.indicator)} ${levelName}`;
+      const isMobile = window.innerWidth <= 768;
+      const indicatorLabel = isMobile ? getIndicatorShortLabel(state.indicator) : getIndicatorLabel(state.indicator);
+      document.getElementById('table-title').textContent = `${indicatorLabel} ${levelName}`;
       
       // Build table header with "Toutes" column first, then years
       const thead = document.getElementById('table-head');
