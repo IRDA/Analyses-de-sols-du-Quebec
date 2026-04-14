@@ -1091,7 +1091,26 @@
         indCEC: 'CEC (méq/100g)',
         // Table header
         name: 'Nom',
-        all: 'Toutes'
+        all: 'Toutes',
+        // Indicator labels for legend/table/popup
+        labelPhosphore: 'P Mehlich 3 (kg/ha)',
+        labelPotassium: 'K Mehlich 3 (kg/ha)',
+        labelCalcium: 'Ca Mehlich 3 (kg/ha)',
+        labelMagnesium: 'Mg Mehlich 3 (kg/ha)',
+        labelAluminium: 'Al Mehlich 3 (ppm)',
+        labelManganese: 'Mn Mehlich 3 (ppm)',
+        labelCuivre: 'Cu Mehlich 3 (ppm)',
+        labelFer: 'Fe Mehlich 3 (ppm)',
+        labelISP1: 'Indice saturation P (%)',
+        labelpH_eau: 'pH eau',
+        labelpH_tampon: 'pH tampon',
+        labelBesoin_en_chaux: 'Besoin en chaux (t/ha)',
+        labelMatiere_organique: 'Matière organique (%)',
+        labelMO4: 'Analyses >= 4% MO (%)',
+        labelCapacite_dechange_cationique: 'CEC (méq/100g)',
+        // Table title
+        byRegion: 'par région',
+        byMRC: 'par MRC'
       },
       en: {
         title: 'Quebec Soil Analysis (2007-2024)',
@@ -1148,7 +1167,26 @@
         indCEC: 'CEC (meq/100g)',
         // Table header
         name: 'Name',
-        all: 'All'
+        all: 'All',
+        // Indicator labels for legend/table/popup
+        labelPhosphore: 'P Mehlich 3 (kg/ha)',
+        labelPotassium: 'K Mehlich 3 (kg/ha)',
+        labelCalcium: 'Ca Mehlich 3 (kg/ha)',
+        labelMagnesium: 'Mg Mehlich 3 (kg/ha)',
+        labelAluminium: 'Al Mehlich 3 (ppm)',
+        labelManganese: 'Mn Mehlich 3 (ppm)',
+        labelCuivre: 'Cu Mehlich 3 (ppm)',
+        labelFer: 'Fe Mehlich 3 (ppm)',
+        labelISP1: 'P saturation index (%)',
+        labelpH_eau: 'Water pH',
+        labelpH_tampon: 'Buffer pH',
+        labelBesoin_en_chaux: 'Lime requirement (t/ha)',
+        labelMatiere_organique: 'Organic matter (%)',
+        labelMO4: 'Samples >= 4% OM (%)',
+        labelCapacite_dechange_cationique: 'CEC (meq/100g)',
+        // Table title
+        byRegion: 'by region',
+        byMRC: 'by RCM'
       }
     };
     
@@ -1170,6 +1208,11 @@
     // Get translation
     function t(key) {
       return TRANSLATIONS[state.lang][key] || key;
+    }
+    
+    // Get translated indicator label
+    function getIndicatorLabel(indicatorKey) {
+      return t('label' + indicatorKey) || CONFIG.indicators[indicatorKey].label;
     }
     
     // Initialize
@@ -1370,7 +1413,7 @@
             .setHTML(`
               <div class="popup-content">
                 <div class="popup-title">${name}</div>
-                <div class="popup-indicator">${indicator.label}</div>
+                <div class="popup-indicator">${getIndicatorLabel(state.indicator)}</div>
                 <div class="popup-value">${displayValue}</div>
                 ${locationData && locationData.n ? `<div class="popup-count">${formatNumber(locationData.n)} ${t('analyses')}</div>` : ''}
               </div>
@@ -1538,7 +1581,7 @@
       const bins = indicator.bins;
       const colors = indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default;
       
-      document.getElementById('legend-title').textContent = indicator.label;
+      document.getElementById('legend-title').textContent = getIndicatorLabel(state.indicator);
       
       const legendItems = document.getElementById('legend-items');
       legendItems.innerHTML = '';
@@ -1601,13 +1644,12 @@
       });
       
       // Update table title with indicator name
-      const levelName = state.level === 'region' ? 'région' : 'MRC';
-      const indicator = CONFIG.indicators[state.indicator];
-      document.getElementById('table-title').textContent = `${indicator.label} par ${levelName}`;
+      const levelName = state.level === 'region' ? t('byRegion') : t('byMRC');
+      document.getElementById('table-title').textContent = `${getIndicatorLabel(state.indicator)} ${levelName}`;
       
       // Build table header with "Toutes" column first, then years
       const thead = document.getElementById('table-head');
-      let headerHtml = '<th>Nom</th><th>Toutes</th>';
+      let headerHtml = `<th>${t('name')}</th><th>${t('all')}</th>`;
       allYears.forEach(year => {
         headerHtml += `<th>${year}</th>`;
       });
