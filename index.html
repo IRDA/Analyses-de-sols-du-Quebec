@@ -455,9 +455,52 @@
       margin-right: 10px;
     }
     
+    /* Mobile tabs */
+    .mobile-tabs {
+      display: none;
+      background: var(--primary);
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .mobile-tabs-inner {
+      display: flex;
+    }
+    
+    .mobile-tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    .mobile-tab.active {
+      color: white;
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .mobile-tab svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+    
     /* Mobile responsive */
     @media (max-width: 768px) {
       .mobile-menu-btn {
+        display: block;
+      }
+      
+      .mobile-tabs {
         display: block;
       }
       
@@ -501,9 +544,26 @@
         flex: 1;
       }
       
+      /* Hide table by default on mobile, show map */
       .table-container {
-        height: 40%;
-        min-height: 150px;
+        display: none;
+        height: 100%;
+        min-height: 0;
+        max-height: none;
+        border-top: none;
+      }
+      
+      .table-container.mobile-visible {
+        display: flex;
+        flex: 1;
+      }
+      
+      .map-container.mobile-hidden {
+        display: none;
+      }
+      
+      #map {
+        min-height: 0;
       }
       
       .search-input {
@@ -527,6 +587,12 @@
       
       td:first-child {
         max-width: 120px;
+      }
+      
+      /* Adjust footer on mobile */
+      .footer {
+        font-size: 0.65rem;
+        padding: 6px 10px;
       }
     }
     
@@ -976,6 +1042,20 @@
       </div>
     </div>
     
+    <!-- Mobile tabs -->
+    <div class="mobile-tabs" id="mobile-tabs">
+      <div class="mobile-tabs-inner">
+        <button class="mobile-tab active" id="tab-map" onclick="showMobileTab('map')">
+          <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+          <span id="tab-map-text">Carte</span>
+        </button>
+        <button class="mobile-tab" id="tab-table" onclick="showMobileTab('table')">
+          <svg viewBox="0 0 24 24"><path d="M3 3v18h18V3H3zm8 16H5v-6h6v6zm0-8H5V5h6v6zm8 8h-6v-6h6v6zm0-8h-6V5h6v6z"/></svg>
+          <span id="tab-table-text">Tableau</span>
+        </button>
+      </div>
+    </div>
+    
     <!-- Footer -->
     <footer class="footer">
       Ce projet a été financé par le Ministère de l'Agriculture, des Pêcheries et de l'Alimentation du Québec.
@@ -1110,7 +1190,10 @@
         labelCapacite_dechange_cationique: 'CEC (méq/100g)',
         // Table title
         byRegion: 'par région',
-        byMRC: 'par MRC'
+        byMRC: 'par MRC',
+        // Mobile tabs
+        tabMap: 'Carte',
+        tabTable: 'Tableau'
       },
       en: {
         title: 'Quebec Soil Analysis (2007-2024)',
@@ -1186,7 +1269,10 @@
         labelCapacite_dechange_cationique: 'CEC (meq/100g)',
         // Table title
         byRegion: 'by region',
-        byMRC: 'by RCM'
+        byMRC: 'by RCM',
+        // Mobile tabs
+        tabMap: 'Map',
+        tabTable: 'Table'
       }
     };
     
@@ -1852,6 +1938,30 @@
       }
     }
     
+    // Mobile tab switching
+    function showMobileTab(tab) {
+      const mapContainer = document.querySelector('.map-container');
+      const tableContainer = document.querySelector('.table-container');
+      const tabMap = document.getElementById('tab-map');
+      const tabTable = document.getElementById('tab-table');
+      
+      if (tab === 'map') {
+        mapContainer.classList.remove('mobile-hidden');
+        tableContainer.classList.remove('mobile-visible');
+        tabMap.classList.add('active');
+        tabTable.classList.remove('active');
+        // Resize map when showing it
+        if (state.map) {
+          setTimeout(() => state.map.resize(), 100);
+        }
+      } else {
+        mapContainer.classList.add('mobile-hidden');
+        tableContainer.classList.add('mobile-visible');
+        tabMap.classList.remove('active');
+        tabTable.classList.add('active');
+      }
+    }
+    
     // Open info modal
     function openInfoModal() {
       document.getElementById('info-modal').classList.add('open');
@@ -1963,6 +2073,10 @@
           indicatorNote.textContent = t('noteMO4');
         }
       }
+      
+      // Mobile tabs
+      document.getElementById('tab-map-text').textContent = t('tabMap');
+      document.getElementById('tab-table-text').textContent = t('tabTable');
     }
     
     // Update indicator select with translated labels
