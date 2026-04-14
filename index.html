@@ -358,26 +358,30 @@
       flex-shrink: 0;
     }
     
-    /* Logos on map */
-    .map-logos {
+    /* Logos on map - positioned like in flex.qmd */
+    .map-logo-quebec {
       position: absolute;
-      bottom: 8px;
-      right: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      bottom: 5px;
+      right: 5px;
       z-index: 10;
     }
     
-    .map-logo {
-      background: white;
-      padding: 5px 8px;
-      border-radius: 4px;
-      box-shadow: var(--shadow);
+    .map-logo-quebec img {
+      width: 150px;
+      height: auto;
+      display: block;
     }
     
-    .map-logo img {
-      height: 20px;
+    .map-logo-irda {
+      position: absolute;
+      bottom: 18px;
+      right: 120px;
+      z-index: 10;
+    }
+    
+    .map-logo-irda img {
+      width: 150px;
+      height: 27px;
       display: block;
     }
     
@@ -664,15 +668,13 @@
             <div id="legend-items"></div>
           </div>
           
-          <!-- Logos -->
-          <div class="map-logos">
-            <a href="https://www.quebec.ca/" target="_blank" rel="noopener" class="map-logo">
-              <img src="https://www.foretouverte.gouv.qc.ca/particular/images/QUEB.png" alt="Québec">
-            </a>
-            <a href="https://www.irda.qc.ca/" target="_blank" rel="noopener" class="map-logo">
-              <img src="https://irda.qc.ca/dist/assets/logos/logo-irda-color.svg" alt="IRDA">
-            </a>
-          </div>
+          <!-- Logos - positioned like in flex.qmd -->
+          <a href="https://www.quebec.ca/" target="_blank" rel="noopener" class="map-logo-quebec">
+            <img src="https://www.foretouverte.gouv.qc.ca/particular/images/QUEB.png" alt="Québec">
+          </a>
+          <a href="https://www.irda.qc.ca/" target="_blank" rel="noopener" class="map-logo-irda">
+            <img src="https://irda.qc.ca/dist/assets/logos/logo-irda-color.svg" alt="IRDA">
+          </a>
         </div>
         
         <!-- Table -->
