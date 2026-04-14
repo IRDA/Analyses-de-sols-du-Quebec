@@ -971,6 +971,28 @@
     <div class="main-content">
       <!-- Sidebar -->
       <aside class="sidebar" id="sidebar">
+        <!-- Mobile only: Language and Info (at top for visibility) -->
+        <div class="sidebar-section sidebar-mobile-actions">
+          <div class="mobile-action-buttons">
+            <button class="btn-action" id="btn-lang-mobile" onclick="toggleLanguage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <span id="btn-lang-mobile-text">English</span>
+            </button>
+            <button class="btn-action" onclick="openInfoModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span id="btn-info-mobile-text">À propos</span>
+            </button>
+          </div>
+        </div>
+        
         <div class="sidebar-section">
           <div class="sidebar-title">Niveau géographique</div>
           <div class="toggle-group">
@@ -1053,28 +1075,6 @@
             </svg>
             Télécharger CSV
           </button>
-        </div>
-        
-        <!-- Mobile only: Language and Info -->
-        <div class="sidebar-section sidebar-mobile-actions">
-          <div class="mobile-action-buttons">
-            <button class="btn-action" id="btn-lang-mobile" onclick="toggleLanguage()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-              </svg>
-              <span id="btn-lang-mobile-text">English</span>
-            </button>
-            <button class="btn-action" onclick="openInfoModal()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-              </svg>
-              <span id="btn-info-mobile-text">À propos</span>
-            </button>
-          </div>
         </div>
       </aside>
       
