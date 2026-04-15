@@ -1857,7 +1857,48 @@
           state.map.getCanvas().style.cursor = '';
           state.hoverPopup.remove();
         });
+        
+        // Click to select in table
+        state.map.on('click', layerId, (e) => {
+          if (state.level !== level) return;
+          
+          const feature = e.features[0];
+          if (!feature) return;
+          
+          const props = feature.properties;
+          const rawCode = props[CONFIG.codeProperty[state.level]];
+          const normalizedCode = normalizeCode(rawCode);
+          
+          // Select row and scroll to it
+          selectRowAndScroll(normalizedCode);
+        });
       });
+    }
+    
+    // Select row in table and scroll to top
+    function selectRowAndScroll(code) {
+      // Find and select the row
+      const rows = document.querySelectorAll('#table-body tr');
+      let targetRow = null;
+      
+      rows.forEach(tr => {
+        if (tr.dataset.code === code) {
+          tr.classList.add('selected');
+          targetRow = tr;
+        } else {
+          tr.classList.remove('selected');
+        }
+      });
+      
+      state.selectedCode = code;
+      highlightOnMap(code);
+      
+      // Scroll the row to the top of the table
+      if (targetRow) {
+        const tableScroll = document.querySelector('.table-scroll');
+        const rowTop = targetRow.offsetTop - tableScroll.offsetTop;
+        tableScroll.scrollTo({ top: rowTop, behavior: 'smooth' });
+      }
     }
     
     // Normalize code to string with leading zeros for comparison
