@@ -1766,6 +1766,34 @@
         layout: { visibility: 'visible' }
       });
       
+      // MRC highlight layer (for table selection)
+      state.map.addLayer({
+        id: 'mrc-highlight',
+        type: 'line',
+        source: 'mrc',
+        'source-layer': CONFIG.sourceLayer.mrc,
+        paint: {
+          'line-color': '#002752',
+          'line-width': 3
+        },
+        filter: ['==', ['get', 'code'], ''],
+        layout: { visibility: 'none' }
+      });
+      
+      // Region highlight layer (for table selection)
+      state.map.addLayer({
+        id: 'region-highlight',
+        type: 'line',
+        source: 'region',
+        'source-layer': CONFIG.sourceLayer.region,
+        paint: {
+          'line-color': '#002752',
+          'line-width': 3
+        },
+        filter: ['==', ['get', 'RES_CO_REG'], ''],
+        layout: { visibility: 'visible' }
+      });
+      
       console.log('Layers added');
       
       // Setup interactions
@@ -1778,49 +1806,41 @@
     
     // Setup map interactions
     function setupInteractions() {
+      // Create a single popup instance for hover
+      state.hoverPopup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        maxWidth: '250px'
+      });
+      
       ['mrc', 'region'].forEach(level => {
         const layerId = `${level}-fill`;
         
-        // Hover effect
+        // Hover effect with popup
         state.map.on('mouseenter', layerId, () => {
           state.map.getCanvas().style.cursor = 'pointer';
         });
         
-        state.map.on('mouseleave', layerId, () => {
-          state.map.getCanvas().style.cursor = '';
-        });
-        
-        // Click popup
-        state.map.on('click', layerId, (e) => {
+        state.map.on('mousemove', layerId, (e) => {
+          if (state.level !== level) return;
+          
           const feature = e.features[0];
           if (!feature) return;
           
           const props = feature.properties;
-          // Debug: log all properties from the PMTiles feature
-          console.log('PMTiles feature properties:', props);
-          
-          // Use the current state level to get the correct code property
           const currentLevel = state.level;
           const rawCode = props[CONFIG.codeProperty[currentLevel]];
           const nameFromPmtiles = props[CONFIG.nameProperty[currentLevel]];
-          
-          // Normalize the code for data lookup
           const normalizedCode = normalizeCode(rawCode);
-          
-          // Get name from our data or PMTiles
           const name = getName(currentLevel, normalizedCode) || nameFromPmtiles || normalizedCode;
           
-          // Get data for this location
           const locationData = getLocationData(normalizedCode);
           const indicator = CONFIG.indicators[state.indicator];
           const value = locationData ? locationData[state.indicator] : null;
           const displayValue = value !== null && value !== undefined ? 
             `${value.toFixed(indicator.decimals)} ${indicator.unit}` : '-';
           
-          // Debug logging
-          console.log('Popup click:', { rawCode, normalizedCode, name, locationData, value, currentLevel, expectedCodeProp: CONFIG.codeProperty[currentLevel] });
-          
-          new maplibregl.Popup({ closeButton: true, maxWidth: '250px' })
+          state.hoverPopup
             .setLngLat(e.lngLat)
             .setHTML(`
               <div class="popup-content">
@@ -1831,6 +1851,11 @@
               </div>
             `)
             .addTo(state.map);
+        });
+        
+        state.map.on('mouseleave', layerId, () => {
+          state.map.getCanvas().style.cursor = '';
+          state.hoverPopup.remove();
         });
       });
     }
@@ -2126,12 +2151,42 @@
       return luminance > 0.5 ? '#000' : '#fff';
     }
     
-    // Select row
+    // Select row and highlight on map
     function selectRow(code) {
       state.selectedCode = code;
       document.querySelectorAll('#table-body tr').forEach(tr => {
         tr.classList.toggle('selected', tr.dataset.code === code);
       });
+      
+      // Highlight on map
+      highlightOnMap(code);
+    }
+    
+    // Highlight polygon on map
+    function highlightOnMap(code) {
+      if (!state.map) return;
+      
+      const codeProperty = CONFIG.codeProperty[state.level];
+      const highlightLayerId = `${state.level}-highlight`;
+      
+      // Update the filter to show only the selected polygon
+      if (code) {
+        // For region, the code property is RES_CO_REG which might be numeric
+        const filterValue = state.level === 'region' ? code : code;
+        state.map.setFilter(highlightLayerId, ['==', ['to-string', ['get', codeProperty]], filterValue]);
+      } else {
+        // Hide highlight by setting impossible filter
+        state.map.setFilter(highlightLayerId, ['==', ['get', codeProperty], '']);
+      }
+    }
+    
+    // Clear highlight
+    function clearHighlight() {
+      state.selectedCode = null;
+      document.querySelectorAll('#table-body tr').forEach(tr => {
+        tr.classList.remove('selected');
+      });
+      highlightOnMap(null);
     }
     
     // Filter table
@@ -2152,6 +2207,14 @@
       document.querySelectorAll('[data-level]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.level === level);
       });
+      
+      // Update highlight layer visibility
+      if (state.map) {
+        state.map.setLayoutProperty('mrc-highlight', 'visibility', level === 'mrc' ? 'visible' : 'none');
+        state.map.setLayoutProperty('region-highlight', 'visibility', level === 'region' ? 'visible' : 'none');
+        clearHighlight();
+      }
+      
       updateView();
       closeSidebarOnMobile();
     }
