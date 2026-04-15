@@ -1895,9 +1895,16 @@
       
       // Scroll the row to the top of the table
       if (targetRow) {
+        // Get the table scroll container
         const tableScroll = document.querySelector('.table-scroll');
-        const rowTop = targetRow.offsetTop - tableScroll.offsetTop;
-        tableScroll.scrollTo({ top: rowTop, behavior: 'smooth' });
+        // Get the header height to account for sticky header
+        const headerHeight = document.querySelector('#table-head').offsetHeight || 30;
+        // Calculate position: row position relative to tbody, minus a small offset
+        const rowPosition = targetRow.offsetTop;
+        tableScroll.scrollTo({ 
+          top: rowPosition - headerHeight, 
+          behavior: 'smooth' 
+        });
       }
     }
     
