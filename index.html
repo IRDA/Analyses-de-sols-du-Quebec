@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Analyse des sols du Québec (2007-2024)</title>
+  <title>Analyses des sols du Québec (2007-2024)</title>
   
   <!-- MapLibre GL -->
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
@@ -1041,7 +1041,7 @@
     <header class="header">
       <div style="display: flex; align-items: center;">
         <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu">&#9776;</button>
-        <h1>Analyse des sols du Québec (2007-2024)</h1>
+        <h1>Analyses des sols du Québec (2007-2024)</h1>
       </div>
       <div style="display: flex; align-items: center;">
         <button class="btn-lang" id="btn-lang" onclick="toggleLanguage()" title="Change language">EN</button>
@@ -1069,7 +1069,7 @@
           <div class="modal-stats" id="modal-stats">
             <div class="modal-stat">
               <div class="modal-stat-value">600 000+</div>
-              <div class="modal-stat-label">échantillons analysés</div>
+              <div class="modal-stat-label">analyses</div>
             </div>
             <div class="modal-stat">
               <div class="modal-stat-value">2007-2024</div>
@@ -1091,7 +1091,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
               <span id="modal-desc-title">Description</span>
             </div>
-            <p id="modal-desc-text">Ce tableau de bord interactif présente l'évolution spatio-temporelle des indicateurs de fertilité des sols agricoles du Québec. Les données proviennent de deux laboratoires privés et ont été centralisées, nettoyées et agrégées pour permettre une visualisation cohérente des tendances à travers le territoire.</p>
+            <p id="modal-desc-text">Ce tableau de bord interactif présente l'évolution spatio-temporelle des indicateurs de fertilité des sols agricoles du Québec. Développé par l'IRDA dans le cadre du projet « Mécanismes de suivi de la santé des sols » en partenariat avec le MAPAQ, il permet de visualiser les tendances des analyses de sols à travers le territoire. Les données proviennent de deux laboratoires privés et ont été centralisées, nettoyées et agrégées.</p>
           </div>
           
           <!-- Indicators -->
@@ -1114,7 +1114,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
               <span id="modal-method-title">Méthodologie</span>
             </div>
-            <p id="modal-method-text">Les données sont agrégées à deux niveaux géographiques : régions administratives et MRC. La géolocalisation est basée sur les codes postaux des producteurs. Les valeurs présentées sont des médianes ou moyennes selon l'indicateur.</p>
+            <p id="modal-method-text">Les données sont agrégées à deux niveaux géographiques : régions administratives et MRC. La géolocalisation est basée sur les codes postaux des producteurs. Les valeurs présentées sont des médianes ou moyennes selon l'indicateur. Un minimum de 10 observations par entité géographique est requis pour l'affichage des données.</p>
           </div>
           
           <!-- Warning -->
@@ -1347,6 +1347,132 @@
   <script src="https://unpkg.com/pmtiles@3.2.1/dist/pmtiles.js"></script>
   
   <script>
+    // Geographic bounds for zoom (extracted from FGB files)
+    const GEO_BOUNDS = {
+      region: {
+        "01": { centroid: [-68.4523, 48.0619], bounds: [[-70.0968, 47.0667], [-66.6965, 49.0342]] },
+        "02": { centroid: [-71.6933, 48.5833], bounds: [[-73.2331, 47.9928], [-69.8794, 49.261]] },
+        "03": { centroid: [-71.0599, 47.2726], bounds: [[-72.4359, 46.5811], [-69.7067, 48.1684]] },
+        "04": { centroid: [-72.6909, 47.0166], bounds: [[-73.3329, 46.1566], [-72.1028, 48.143]] },
+        "05": { centroid: [-71.8056, 45.421], bounds: [[-73.1159, 45.0038], [-70.4218, 45.9573]] },
+        "06": { centroid: [-73.6839, 45.5164], bounds: [[-73.9754, 45.4021], [-73.4785, 45.7024]] },
+        "07": { centroid: [-75.9064, 45.9207], bounds: [[-77.356, 45.3799], [-74.6988, 46.7212]] },
+        "08": { centroid: [-78.5949, 48.2882], bounds: [[-79.5678, 47.0301], [-77.0749, 49.0096]] },
+        "09": { centroid: [-68.0302, 49.2092], bounds: [[-70.0704, 48.1344], [-64.0182, 50.4328]] },
+        "10": { centroid: [-76.7865, 49.5192], bounds: [[-79.5178, 48.9996], [-74.1637, 50.0895]] },
+        "11": { centroid: [-65.5717, 48.4948], bounds: [[-67.57, 47.2121], [-61.7005, 49.2571]] },
+        "12": { centroid: [-70.7404, 46.4869], bounds: [[-72.0373, 45.7704], [-69.6253, 47.3414]] },
+        "13": { centroid: [-73.7255, 45.6048], bounds: [[-73.8855, 45.5124], [-73.5289, 45.6991]] },
+        "14": { centroid: [-73.5189, 46.076], bounds: [[-74.0774, 45.6698], [-72.9765, 46.5349]] },
+        "15": { centroid: [-74.8677, 46.1975], bounds: [[-75.8103, 45.4589], [-73.7301, 47.0378]] },
+        "16": { centroid: [-73.4088, 45.4281], bounds: [[-74.6249, 44.9914], [-72.3156, 46.1112]] },
+        "17": { centroid: [-72.1511, 46.092], bounds: [[-72.9739, 45.5894], [-71.3718, 46.5614]] }
+      },
+      mrc: {
+        "01": { centroid: [-61.8904, 47.3347], bounds: [[-62.021, 47.2121], [-61.7005, 47.509]] },
+        "02": { centroid: [-64.6067, 48.4346], bounds: [[-65.1341, 48.1067], [-64.1434, 48.6967]] },
+        "03": { centroid: [-64.6527, 48.969], bounds: [[-65.2693, 48.6944], [-64.2015, 49.2308]] },
+        "04": { centroid: [-66.0201, 49.1274], bounds: [[-66.9087, 48.9585], [-65.1871, 49.2571]] },
+        "05": { centroid: [-65.5816, 48.2033], bounds: [[-66.2263, 48.0002], [-65.0327, 48.3962]] },
+        "06": { centroid: [-66.7822, 48.0933], bounds: [[-67.57, 47.8449], [-65.9034, 48.2761]] },
+        "07": { centroid: [-67.403, 48.3846], bounds: [[-67.9775, 48.0315], [-66.8369, 48.716]] },
+        "08": { centroid: [-67.298, 48.799], bounds: [[-67.9467, 48.5497], [-66.6965, 49.0342]] },
+        "09": { centroid: [-68.0279, 48.4267], bounds: [[-68.427, 48.1667], [-67.6179, 48.6928]] },
+        "10": { centroid: [-68.5077, 48.2354], bounds: [[-68.9737, 47.9039], [-68.1221, 48.5287]] },
+        "11": { centroid: [-68.9998, 48.0611], bounds: [[-69.2757, 47.8576], [-68.7543, 48.2719]] },
+        "12": { centroid: [-69.2947, 47.8494], bounds: [[-69.6626, 47.646], [-68.8475, 48.0836]] },
+        "13": { centroid: [-68.8732, 47.6431], bounds: [[-69.5887, 47.3002], [-68.4002, 48.1299]] },
+        "14": { centroid: [-69.7024, 47.4311], bounds: [[-70.0968, 47.0667], [-69.3057, 47.9048]] },
+        "15": { centroid: [-70.1601, 47.8663], bounds: [[-70.5306, 47.5066], [-69.7067, 48.1684]] },
+        "16": { centroid: [-70.5355, 47.5226], bounds: [[-70.7729, 47.2269], [-70.2159, 47.9978]] },
+        "17": { centroid: [-70.0251, 47.0544], bounds: [[-70.4335, 46.733], [-69.6253, 47.3414]] },
+        "18": { centroid: [-70.3298, 46.8109], bounds: [[-70.7822, 46.4625], [-69.9599, 47.1654]] },
+        "19": { centroid: [-70.7454, 46.6719], bounds: [[-71.1516, 46.3943], [-70.3241, 46.9149]] },
+        "20": { centroid: [-70.9587, 46.9327], bounds: [[-71.1417, 46.8452], [-70.7123, 47.0247]] },
+        "21": { centroid: [-70.9138, 47.1125], bounds: [[-71.2436, 46.8862], [-70.6182, 47.323]] },
+        "22": { centroid: [-71.4591, 47.0084], bounds: [[-71.8127, 46.7839], [-71.0858, 47.1726]] },
+        "23": { centroid: [-71.3605, 46.8386], bounds: [[-71.6067, 46.7153], [-71.1437, 46.9807]] },
+        "26": { centroid: [-71.0104, 46.4872], bounds: [[-71.332, 46.3391], [-70.6887, 46.6529]] },
+        "27": { centroid: [-70.8511, 46.2647], bounds: [[-71.1457, 46.0628], [-70.558, 46.4247]] },
+        "28": { centroid: [-70.3694, 46.3665], bounds: [[-70.6732, 46.0268], [-70.0468, 46.6775]] },
+        "29": { centroid: [-70.6897, 45.9751], bounds: [[-71.1069, 45.7787], [-70.2783, 46.2626]] },
+        "30": { centroid: [-70.9342, 45.6205], bounds: [[-71.3893, 45.2454], [-70.4218, 45.9573]] },
+        "31": { centroid: [-71.3004, 46.0698], bounds: [[-71.6859, 45.7704], [-70.9702, 46.349]] },
+        "32": { centroid: [-71.7025, 46.2539], bounds: [[-71.986, 46.0251], [-71.3718, 46.4516]] },
+        "33": { centroid: [-71.5495, 46.4948], bounds: [[-72.0373, 46.2896], [-71.1001, 46.6881]] },
+        "34": { centroid: [-71.9918, 46.874], bounds: [[-72.4359, 46.5811], [-71.5229, 47.1277]] },
+        "35": { centroid: [-72.5511, 46.8702], bounds: [[-72.86, 46.6076], [-72.1685, 47.1404]] },
+        "36": { centroid: [-72.7522, 46.6261], bounds: [[-72.898, 46.4621], [-72.5831, 46.8582]] },
+        "38": { centroid: [-72.1989, 46.3598], bounds: [[-72.6021, 46.1919], [-71.8811, 46.5614]] },
+        "39": { centroid: [-71.9443, 45.9997], bounds: [[-72.3284, 45.7877], [-71.4556, 46.3267]] },
+        "40": { centroid: [-71.7974, 45.7493], bounds: [[-72.1338, 45.6006], [-71.436, 45.885]] },
+        "41": { centroid: [-71.4558, 45.4734], bounds: [[-71.8305, 45.233], [-71.131, 45.7991]] },
+        "42": { centroid: [-72.0901, 45.5556], bounds: [[-72.4624, 45.3747], [-71.6271, 45.7605]] },
+        "43": { centroid: [-71.9607, 45.4028], bounds: [[-72.1087, 45.3002], [-71.8025, 45.524]] },
+        "44": { centroid: [-71.752, 45.1427], bounds: [[-72.0988, 45.0065], [-71.3973, 45.3505]] },
+        "45": { centroid: [-72.2231, 45.206], bounds: [[-72.4864, 45.0038], [-71.8623, 45.4498]] },
+        "46": { centroid: [-72.7593, 45.1672], bounds: [[-73.1159, 45.0078], [-72.4, 45.352]] },
+        "47": { centroid: [-72.6526, 45.4163], bounds: [[-72.8761, 45.2843], [-72.4489, 45.5387]] },
+        "48": { centroid: [-72.5373, 45.6211], bounds: [[-72.7302, 45.4492], [-72.3156, 45.7926]] },
+        "49": { centroid: [-72.471, 45.8577], bounds: [[-72.854, 45.5894], [-72.0929, 46.0976]] },
+        "50": { centroid: [-72.5404, 46.1251], bounds: [[-72.9739, 46.0067], [-72.1494, 46.2766]] },
+        "51": { centroid: [-72.9889, 46.4101], bounds: [[-73.3329, 46.1566], [-72.6902, 46.706]] },
+        "52": { centroid: [-73.2727, 46.1997], bounds: [[-73.475, 45.8472], [-72.9765, 46.5028]] },
+        "53": { centroid: [-72.9979, 45.9654], bounds: [[-73.2036, 45.8175], [-72.7526, 46.1112]] },
+        "54": { centroid: [-72.9072, 45.6719], bounds: [[-73.1402, 45.4525], [-72.616, 45.909]] },
+        "55": { centroid: [-73.032, 45.4132], bounds: [[-73.273, 45.2655], [-72.8171, 45.5351]] },
+        "56": { centroid: [-73.2303, 45.2159], bounds: [[-73.4122, 45.0097], [-72.9947, 45.4135]] },
+        "57": { centroid: [-73.2012, 45.6158], bounds: [[-73.3868, 45.3822], [-73.0594, 45.8613]] },
+        "58": { centroid: [-73.4208, 45.5233], bounds: [[-73.5277, 45.4135], [-73.2926, 45.6565]] },
+        "59": { centroid: [-73.3197, 45.7189], bounds: [[-73.483, 45.5532], [-73.1639, 45.9809]] },
+        "60": { centroid: [-73.4472, 45.8286], bounds: [[-73.5806, 45.7121], [-73.293, 45.9435]] },
+        "61": { centroid: [-73.453, 46.0502], bounds: [[-73.6379, 45.9045], [-73.2338, 46.2058]] },
+        "62": { centroid: [-73.6632, 46.1894], bounds: [[-74.0774, 45.9769], [-73.283, 46.5349]] },
+        "63": { centroid: [-73.7033, 45.9244], bounds: [[-73.975, 45.7865], [-73.4561, 46.0594]] },
+        "64": { centroid: [-73.6551, 45.7468], bounds: [[-73.8448, 45.6698], [-73.4875, 45.8272]] },
+        "65": { centroid: [-73.7255, 45.6048], bounds: [[-73.8855, 45.5124], [-73.5289, 45.6991]] },
+        "66": { centroid: [-73.6839, 45.5164], bounds: [[-73.9754, 45.4021], [-73.4785, 45.7024]] },
+        "67": { centroid: [-73.6041, 45.3465], bounds: [[-73.8464, 45.229], [-73.3804, 45.4333]] },
+        "68": { centroid: [-73.536, 45.1556], bounds: [[-73.7542, 45.0029], [-73.3521, 45.3302]] },
+        "69": { centroid: [-74.0769, 45.0803], bounds: [[-74.6249, 44.9914], [-73.6712, 45.2186]] },
+        "70": { centroid: [-73.9435, 45.2361], bounds: [[-74.182, 45.1456], [-73.6686, 45.3397]] },
+        "71": { centroid: [-74.2409, 45.3684], bounds: [[-74.472, 45.1972], [-73.8541, 45.5635]] },
+        "72": { centroid: [-74.0354, 45.5358], bounds: [[-74.2786, 45.4589], [-73.8408, 45.6216]] },
+        "73": { centroid: [-73.8329, 45.7063], bounds: [[-73.9318, 45.5825], [-73.7301, 45.8176]] },
+        "74": { centroid: [-74.0598, 45.652], bounds: [[-74.2676, 45.5147], [-73.8505, 45.7895]] },
+        "75": { centroid: [-74.0216, 45.8319], bounds: [[-74.2121, 45.6706], [-73.8078, 45.997]] },
+        "76": { centroid: [-74.4795, 45.7317], bounds: [[-74.8065, 45.508], [-74.105, 45.9316]] },
+        "77": { centroid: [-74.2558, 45.9289], bounds: [[-74.5378, 45.7526], [-73.9605, 46.1171]] },
+        "78": { centroid: [-74.6266, 46.1182], bounds: [[-75.0898, 45.9055], [-74.0735, 46.3156]] },
+        "79": { centroid: [-75.3141, 46.4779], bounds: [[-75.8103, 45.9529], [-74.6124, 47.0378]] },
+        "80": { centroid: [-75.1827, 45.8558], bounds: [[-75.7772, 45.5397], [-74.6988, 46.2153]] },
+        "81": { centroid: [-75.6587, 45.4942], bounds: [[-75.9084, 45.3799], [-75.3447, 45.5991]] },
+        "82": { centroid: [-75.8883, 45.6449], bounds: [[-76.3258, 45.4178], [-75.3539, 45.8336]] },
+        "83": { centroid: [-75.9781, 46.245], bounds: [[-76.3195, 45.75], [-75.7006, 46.7212]] },
+        "84": { centroid: [-76.6432, 45.8465], bounds: [[-77.356, 45.4625], [-76.1501, 46.1032]] },
+        "85": { centroid: [-79.1435, 47.5261], bounds: [[-79.5678, 47.0301], [-78.4985, 47.9094]] },
+        "86": { centroid: [-78.957, 48.2199], bounds: [[-79.471, 47.8514], [-78.2955, 48.5752]] },
+        "87": { centroid: [-79.1127, 48.748], bounds: [[-79.5178, 48.43], [-78.6431, 49.0096]] },
+        "88": { centroid: [-78.0318, 48.5996], bounds: [[-78.6473, 48.2412], [-77.2815, 48.9472]] },
+        "89": { centroid: [-77.6324, 48.2712], bounds: [[-78.306, 48.0419], [-77.0749, 48.5749]] },
+        "90": { centroid: [-72.7052, 47.6387], bounds: [[-73.2961, 47.0616], [-72.1577, 48.143]] },
+        "91": { centroid: [-72.4528, 48.4688], bounds: [[-73.2331, 47.9985], [-71.8876, 48.8793]] },
+        "92": { centroid: [-72.2822, 48.9868], bounds: [[-72.9323, 48.7161], [-71.4179, 49.261]] },
+        "93": { centroid: [-71.6934, 48.5732], bounds: [[-72.095, 48.2128], [-71.3217, 48.9633]] },
+        "95": { centroid: [-69.4857, 48.4886], bounds: [[-70.0704, 48.1344], [-68.6195, 48.9425]] },
+        "96": { centroid: [-68.1748, 49.2414], bounds: [[-68.7117, 48.9307], [-67.2456, 49.5866]] },
+        "251": { centroid: [-71.236, 46.7067], bounds: [[-71.5024, 46.5729], [-70.9944, 46.8327]] },
+        "371": { centroid: [-72.6153, 46.3699], bounds: [[-72.7794, 46.2774], [-72.4231, 46.4692]] },
+        "372": { centroid: [-72.419, 46.5484], bounds: [[-72.7577, 46.4068], [-72.1028, 46.7185]] },
+        "941": { centroid: [-71.1366, 48.3757], bounds: [[-71.5635, 48.2138], [-70.7096, 48.5662]] },
+        "942": { centroid: [-70.7407, 48.3353], bounds: [[-71.6041, 47.9928], [-69.8794, 48.9121]] },
+        "971": { centroid: [-66.7567, 50.044], bounds: [[-67.3786, 49.5866], [-65.9714, 50.3457]] },
+        "981": { centroid: [-64.2982, 50.3469], bounds: [[-64.5709, 50.2068], [-64.0182, 50.4328]] },
+        "991": { centroid: [-76.7865, 49.5192], bounds: [[-79.5178, 48.9996], [-74.1637, 50.0895]] },
+        "993": { centroid: [-74.7608, 49.8912], bounds: [[-74.7609, 49.8911], [-74.7605, 49.8912]] }
+      }
+    };
+    
     // Configuration
     const CONFIG = {
       baseUrl: './',
@@ -1380,9 +1506,9 @@
         Cuivre: { label: 'Cu Mehlich 3 (ppm)', unit: 'ppm', bins: [0, 1, 2, 3, 4, 5, 10], reverse: false, decimals: 1 },
         Fer: { label: 'Fe Mehlich 3 (ppm)', unit: 'ppm', bins: [0, 100, 200, 300, 400, 500, 800], reverse: false, decimals: 0 },
         // Autres indicateurs
-        ISP1: { label: 'Indice saturation P (%)', unit: '%', bins: [0, 1, 2, 3, 4, 5, 6, 10], reverse: false, decimals: 1 },
-        pH_eau: { label: 'pH eau', unit: '', bins: [4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8], reverse: false, decimals: 2 },
-        pH_tampon: { label: 'pH tampon', unit: '', bins: [5, 5.5, 6, 6.5, 7, 7.5, 8], reverse: false, decimals: 2 },
+        ISP1: { label: 'Indice saturation P (%)', unit: '%', bins: [0, 2, 4, 6, 8, 10, 15], reverse: false, decimals: 1, palette: 'diverging' },
+        pH_eau: { label: 'pH eau', unit: '', bins: [4, 5, 5.5, 6, 6.5, 7, 7.5, 8], reverse: false, decimals: 2, palette: 'diverging' },
+        pH_tampon: { label: 'pH tampon', unit: '', bins: [5, 5.5, 6, 6.5, 7, 7.5, 8], reverse: false, decimals: 2, palette: 'diverging' },
         Besoin_en_chaux: { label: 'Besoin en chaux (t/ha)', unit: 't/ha', bins: [0, 2, 4, 6, 8, 10, 15], reverse: true, decimals: 1, moyenneOnly: true, note: 'Calcul selon le Guide de référence en fertilisation 2e édition du CRAAQ, avec une cible de pH de 6,5.' },
         Matiere_organique: { label: 'Matière organique (%)', unit: '%', bins: [0, 2, 3, 4, 5, 6, 8, 12], reverse: false, decimals: 1 },
         MO4: { label: 'Analyses >= 4% MO (%)', unit: '%', bins: [0, 20, 40, 60, 80, 100], reverse: false, decimals: 0, moyenneOnly: true, note: 'Proportion d\'échantillons avec MO >= 4%. Seule la moyenne est pertinente pour cet indicateur.' },
@@ -1390,14 +1516,15 @@
       },
       colors: {
         default: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#d9ef8b', '#a6d96a', '#66bd63', '#1a9850'],
-        reversed: ['#1a9850', '#66bd63', '#a6d96a', '#d9ef8b', '#fee08b', '#fdae61', '#f46d43', '#d73027']
+        reversed: ['#1a9850', '#66bd63', '#a6d96a', '#d9ef8b', '#fee08b', '#fdae61', '#f46d43', '#d73027'],
+        diverging: ['#b2182b', '#ef8a62', '#fddbc7', '#1a9850', '#d1e5f0', '#67a9cf', '#2166ac']
       }
     };
     
     // Translations
     const TRANSLATIONS = {
       fr: {
-        title: 'Analyse des sols du Québec (2007-2024)',
+        title: 'Analyses des sols du Québec (2007-2024)',
         geoLevel: 'Niveau géographique',
         region: 'Région',
         mrc: 'MRC',
@@ -1417,17 +1544,17 @@
         footer: 'Ce projet est financé en vertu du Partenariat canadien pour une agriculture durable, entente conclue entre les gouvernements du Canada et du Québec.',
         aboutTitle: 'À propos',
         // Modal stats
-        statSamples: 'échantillons analysés',
+        statSamples: 'analyses',
         statPeriod: 'période couverte',
         statRegions: 'régions',
         statMRC: 'MRC',
         // Modal sections
         modalDescTitle: 'Description',
-        modalDescText: 'Ce tableau de bord interactif présente l\'évolution spatio-temporelle des indicateurs de fertilité des sols agricoles du Québec. Les données proviennent de deux laboratoires privés et ont été centralisées, nettoyées et agrégées pour permettre une visualisation cohérente des tendances à travers le territoire.',
+        modalDescText: 'Ce tableau de bord interactif présente l\'évolution spatio-temporelle des indicateurs de fertilité des sols agricoles du Québec. Développé par l\'IRDA dans le cadre du projet « Mécanismes de suivi de la santé des sols » en partenariat avec le MAPAQ, il permet de visualiser les tendances des analyses de sols à travers le territoire. Les données proviennent de deux laboratoires privés et ont été centralisées, nettoyées et agrégées.',
         modalIndTitle: 'Indicateurs disponibles',
         modalIndList: '<strong>Mehlich 3 :</strong> P, K, Ca, Mg, Al, Fe, Mn, Cu<br><strong>pH :</strong> pH eau, pH tampon, Besoin en chaux<br><strong>Matière organique :</strong> MO (%), Proportion MO ≥ 4%<br><strong>Autres :</strong> Indice de saturation en P, CEC',
         modalMethodTitle: 'Méthodologie',
-        modalMethodText: 'Les données sont agrégées à deux niveaux géographiques : régions administratives et MRC. La géolocalisation est basée sur les codes postaux des producteurs. Les valeurs présentées sont des médianes ou moyennes selon l\'indicateur.',
+        modalMethodText: 'Les données sont agrégées à deux niveaux géographiques : régions administratives et MRC. La géolocalisation est basée sur les codes postaux des producteurs. Les valeurs présentées sont des médianes ou moyennes selon l\'indicateur. Un minimum de 10 observations par entité géographique est requis pour l\'affichage des données.',
         modalWarning: '<strong>Note d\'interprétation :</strong> La géolocalisation par code postal engendre une incertitude spatiale. Les pratiques d\'échantillonnage ne sont ni aléatoires ni systématiques, ce qui limite la comparabilité interannuelle à fine échelle.',
         contactTitle: 'Contact',
         contactRole1: 'professionnel de recherche',
@@ -1488,7 +1615,7 @@
         about: 'À propos'
       },
       en: {
-        title: 'Quebec Soil Analysis (2007-2024)',
+        title: 'Quebec Soil Analyses (2007-2024)',
         geoLevel: 'Geographic level',
         region: 'Region',
         mrc: 'RCM',
@@ -1508,17 +1635,17 @@
         footer: 'This project was funded by the Ministère de l\'Agriculture, des Pêcheries et de l\'Alimentation du Québec.',
         aboutTitle: 'About',
         // Modal stats
-        statSamples: 'samples analyzed',
+        statSamples: 'analyses',
         statPeriod: 'period covered',
         statRegions: 'regions',
         statMRC: 'RCMs',
         // Modal sections
         modalDescTitle: 'Description',
-        modalDescText: 'This interactive dashboard presents the spatio-temporal evolution of soil fertility indicators in Quebec agricultural soils. Data comes from two private laboratories and has been centralized, cleaned and aggregated to allow coherent visualization of trends across the territory.',
+        modalDescText: 'This interactive dashboard presents the spatio-temporal evolution of soil fertility indicators in Quebec agricultural soils. Developed by IRDA as part of the "Soil Health Monitoring Mechanisms" project in partnership with MAPAQ, it allows visualization of soil analysis trends across the territory. Data comes from two private laboratories and has been centralized, cleaned and aggregated.',
         modalIndTitle: 'Available indicators',
         modalIndList: '<strong>Mehlich 3:</strong> P, K, Ca, Mg, Al, Fe, Mn, Cu<br><strong>pH:</strong> Water pH, Buffer pH, Lime requirement<br><strong>Organic matter:</strong> OM (%), Proportion OM ≥ 4%<br><strong>Other:</strong> P saturation index, CEC',
         modalMethodTitle: 'Methodology',
-        modalMethodText: 'Data are aggregated at two geographic levels: administrative regions and RCMs. Geolocation is based on producer postal codes. Values presented are medians or means depending on the indicator.',
+        modalMethodText: 'Data are aggregated at two geographic levels: administrative regions and RCMs. Geolocation is based on producer postal codes. Values presented are medians or means depending on the indicator. A minimum of 10 observations per geographic entity is required for data display.',
         modalWarning: '<strong>Interpretation note:</strong> Geolocation by postal code creates spatial uncertainty. Sampling practices are neither random nor systematic, which limits inter-annual comparability at fine scales.',
         contactTitle: 'Contact',
         contactRole1: 'research professional',
@@ -1940,7 +2067,11 @@
       const normalizedCode = normalizeCode(code);
       
       if (state.year === 'all') {
-        return statData.find(d => normalizeCode(d.code) === normalizedCode);
+        // When "all years" is selected, return the most recent year's data for this code
+        const matchingData = statData.filter(d => normalizeCode(d.code) === normalizedCode);
+        if (matchingData.length === 0) return null;
+        // Sort by year descending and return the most recent
+        return matchingData.sort((a, b) => String(b.Annee).localeCompare(String(a.Annee)))[0];
       } else {
         return statData.find(d => normalizeCode(d.code) === normalizedCode && String(d.Annee) === String(state.year));
       }
@@ -2006,7 +2137,7 @@
       // Create color expression
       const indicator = CONFIG.indicators[state.indicator];
       const bins = indicator.bins;
-      const colors = indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default;
+      const colors = indicator.palette ? CONFIG.colors[indicator.palette] : (indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default);
       
       // Build match expression for PMTiles
       const codeProperty = CONFIG.codeProperty[state.level];
@@ -2064,7 +2195,7 @@
     function updateLegend() {
       const indicator = CONFIG.indicators[state.indicator];
       const bins = indicator.bins;
-      const colors = indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default;
+      const colors = indicator.palette ? CONFIG.colors[indicator.palette] : (indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default);
       
       document.getElementById('legend-title').textContent = getIndicatorLabel(state.indicator);
       
@@ -2184,7 +2315,7 @@
       
       const indicator = CONFIG.indicators[indicatorKey];
       const bins = indicator.bins;
-      const colors = indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default;
+      const colors = indicator.palette ? CONFIG.colors[indicator.palette] : (indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default);
       const color = getColorForValue(value, bins, colors);
       const textColor = getContrastColor(color);
       
@@ -2236,75 +2367,67 @@
       // Select the row first
       selectRow(code);
       
-      const layerId = `${state.level}-fill`;
-      const codeProperty = CONFIG.codeProperty[state.level];
+      // Use pre-calculated bounds from GEO_BOUNDS
+      const geoBounds = GEO_BOUNDS[state.level];
+      const normalizedCode = normalizeCode(code);
       
-      // Function to find and zoom to feature
-      const findAndZoom = () => {
-        // Try queryRenderedFeatures (features currently visible)
-        let features = state.map.queryRenderedFeatures({ layers: [layerId] })
-          .filter(f => {
-            const featureCode = String(f.properties[codeProperty]);
-            const normalizedFeatureCode = featureCode.length === 1 ? '0' + featureCode : featureCode;
-            return normalizedFeatureCode === code || featureCode === code;
-          });
-        
-        // If not found in rendered features, try querySourceFeatures
-        if (features.length === 0) {
-          features = state.map.querySourceFeatures(state.level, {
-            sourceLayer: CONFIG.sourceLayer[state.level]
-          }).filter(f => {
-            const featureCode = String(f.properties[codeProperty]);
-            const normalizedFeatureCode = featureCode.length === 1 ? '0' + featureCode : featureCode;
-            return normalizedFeatureCode === code || featureCode === code;
-          });
-        }
-        
-        if (features.length > 0) {
-          // Calculate bounds from all matching features
-          const bounds = new maplibregl.LngLatBounds();
-          
-          features.forEach(feature => {
-            const geom = feature.geometry;
-            if (!geom) return;
-            
-            if (geom.type === 'Polygon') {
-              geom.coordinates[0].forEach(coord => {
-                bounds.extend(coord);
-              });
-            } else if (geom.type === 'MultiPolygon') {
-              geom.coordinates.forEach(polygon => {
-                polygon[0].forEach(coord => {
-                  bounds.extend(coord);
-                });
-              });
-            }
-          });
-          
-          if (!bounds.isEmpty()) {
-            // Fit the map to the bounds with some padding
-            state.map.fitBounds(bounds, {
-              padding: 50,
-              maxZoom: 10,
-              duration: 1000
-            });
-            return true;
-          }
-        }
-        return false;
-      };
+      // Try to find bounds for this code
+      let boundsData = geoBounds[normalizedCode] || geoBounds[code];
       
-      // Try to find immediately
-      if (!findAndZoom()) {
-        // If not found, zoom out first to load all features, then try again
-        state.map.fitBounds([[-80, 44], [-56, 63]], { duration: 500 });
-        
-        // Wait for tiles to load then try again
-        state.map.once('idle', () => {
-          setTimeout(() => {
-            findAndZoom();
-          }, 100);
+      if (boundsData && boundsData.bounds) {
+        // Use pre-calculated bounds
+        const bounds = new maplibregl.LngLatBounds(boundsData.bounds[0], boundsData.bounds[1]);
+        state.map.fitBounds(bounds, {
+          padding: 50,
+          maxZoom: 10,
+          duration: 1000
         });
+      } else {
+        // Fallback: try to find feature from rendered/source features
+        const layerId = `${state.level}-fill`;
+        const codeProperty = CONFIG.codeProperty[state.level];
+        
+        const findAndZoom = () => {
+          let features = state.map.queryRenderedFeatures({ layers: [layerId] })
+            .filter(f => {
+              const featureCode = String(f.properties[codeProperty]);
+              const normalizedFeatureCode = featureCode.length === 1 ? '0' + featureCode : featureCode;
+              return normalizedFeatureCode === code || featureCode === code;
+            });
+          
+          if (features.length === 0) {
+            features = state.map.querySourceFeatures(state.level, {
+              sourceLayer: CONFIG.sourceLayer[state.level]
+            }).filter(f => {
+              const featureCode = String(f.properties[codeProperty]);
+              const normalizedFeatureCode = featureCode.length === 1 ? '0' + featureCode : featureCode;
+              return normalizedFeatureCode === code || featureCode === code;
+            });
+          }
+          
+          if (features.length > 0) {
+            const bounds = new maplibregl.LngLatBounds();
+            features.forEach(feature => {
+              const geom = feature.geometry;
+              if (!geom) return;
+              if (geom.type === 'Polygon') {
+                geom.coordinates[0].forEach(coord => bounds.extend(coord));
+              } else if (geom.type === 'MultiPolygon') {
+                geom.coordinates.forEach(polygon => polygon[0].forEach(coord => bounds.extend(coord)));
+              }
+            });
+            if (!bounds.isEmpty()) {
+              state.map.fitBounds(bounds, { padding: 50, maxZoom: 10, duration: 1000 });
+              return true;
+            }
+          }
+          return false;
+        };
+        
+        if (!findAndZoom()) {
+          state.map.fitBounds([[-80, 44], [-56, 63]], { duration: 500 });
+          state.map.once('idle', () => setTimeout(findAndZoom, 100));
+        }
       }
     }
     
