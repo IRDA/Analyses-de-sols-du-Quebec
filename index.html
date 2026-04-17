@@ -2230,16 +2230,18 @@
     function updateTable() {
       const levelData = state.data[state.level];
       
-      // Determine data source based on year selection
-      let pooledData, yearlyData, allYears, allCodes, dataByCode;
+      // Get pooled data for "Toutes" column (always needed)
+      const pooledData = levelData[`${state.stat}_all`];
+      if (!pooledData) {
+        console.warn('No pooled data for:', state.level, `${state.stat}_all`);
+        return;
+      }
+      
+      // Get yearly data if specific year selected
+      let yearlyData, allYears, allCodes, dataByCode;
       
       if (state.year === 'all') {
-        // Use pooled _all data for "Toutes" column only
-        pooledData = levelData[`${state.stat}_all`];
-        if (!pooledData) {
-          console.warn('No pooled data for:', state.level, `${state.stat}_all`);
-          return;
-        }
+        // Use pooled data to get codes when viewing all years
         allCodes = [...new Set(pooledData.map(d => d.code))];
         allYears = []; // No year columns when viewing pooled data
       } else {
@@ -2298,12 +2300,9 @@
         
         let rowHtml = `<td title="${name}">${name}</td>`;
         
-        // "Toutes les années" column - use pooled data value
-        let pooledValue = null;
-        if (pooledData) {
-          const pooledEntry = pooledData.find(d => d.code === code);
-          pooledValue = pooledEntry ? pooledEntry[state.indicator] : null;
-        }
+        // "Toutes les années" column - always use pooled data
+        const pooledEntry = pooledData.find(d => d.code === code);
+        const pooledValue = pooledEntry ? pooledEntry[state.indicator] : null;
         rowHtml += `<td>${formatValue(pooledValue, state.indicator)}</td>`;
         
         // Year columns (only if viewing specific year, not pooled)
