@@ -2116,31 +2116,28 @@
       
       // Get data for current selection
       const levelData = state.data[state.level];
-      const statKey = state.year === 'all' ? `${state.stat}_all` : state.stat;
-      const statData = levelData[statKey];
+      const indicator = CONFIG.indicators[state.indicator];
       
-      if (!statData) {
-        console.warn('No data for:', state.level, statKey);
-        return;
-      }
-      
-      // Filter by year if needed
       let filteredData;
       if (state.year === 'all') {
-        // When "all years" is selected, take the most recent year for each code
-        const latestByCode = {};
-        statData.forEach(d => {
-          const code = d.code;
-          if (!latestByCode[code] || String(d.Annee) > String(latestByCode[code].Annee)) {
-            latestByCode[code] = d;
-          }
-        });
-        filteredData = Object.values(latestByCode);
+        // Use pooled _all data directly (no Annee column in pooled data)
+        filteredData = levelData[`${state.stat}_all`];
       } else {
+        // Use yearly data, filter by year
+        const statData = levelData[state.stat];
+        if (!statData) {
+          console.warn('No data for:', state.level, state.stat);
+          return;
+        }
         filteredData = statData.filter(d => String(d.Annee) === String(state.year));
       }
       
-      console.log('updateMapStyle:', { level: state.level, statKey, year: state.year, indicator: state.indicator, dataCount: filteredData.length });
+      if (!filteredData) {
+        console.warn('No data for:', state.level, state.year);
+        return;
+      }
+      
+      console.log('updateMapStyle:', { level: state.level, year: state.year, indicator: state.indicator, dataCount: filteredData.length });
       
       // Create color expression
       const indicator = CONFIG.indicators[state.indicator];
