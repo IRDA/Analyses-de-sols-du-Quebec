@@ -2140,9 +2140,8 @@
       console.log('updateMapStyle:', { level: state.level, year: state.year, indicator: state.indicator, dataCount: filteredData.length });
       
       // Create color expression
-      const indicator = CONFIG.indicators[state.indicator];
       const bins = indicator.bins;
-      const colors = indicator.palette ? CONFIG.colors[indicator.palette] : (indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default);
+      const colors = indicator.colors || (indicator.palette ? CONFIG.colors[indicator.palette] : (indicator.reverse ? CONFIG.colors.reversed : CONFIG.colors.default));
       
       // Build match expression for PMTiles
       const codeProperty = CONFIG.codeProperty[state.level];
