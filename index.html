@@ -1510,8 +1510,8 @@
         Cuivre: { label: 'Cu Mehlich 3 (ppm)', unit: 'ppm', bins: [0, 1, 2, 3, 4, 5, 10], reverse: false, decimals: 1 },
         Fer: { label: 'Fe Mehlich 3 (ppm)', unit: 'ppm', bins: [0, 100, 200, 300, 400, 500, 800], reverse: false, decimals: 0 },
         // Autres indicateurs
-        ISP1: { label: 'ISP - G1 (%)', unit: '%', bins: [0, 1.5, 3.1, 7.6, 7.7], colors: ['#1A9850', '#91CF60', '#FDAE61', '#D73027'], decimals: 1 },
-        ISP2: { label: 'ISP - G1-G2 (%)', unit: '%', bins: [0, 3.8, 5.0, 7.5, 15, 15.1], colors: ['#1A9850', '#A6D96A', '#FEE08B', '#F46D43', '#D73027'], decimals: 1 },
+        ISP1: { label: 'ISP - G1 (%)', unit: '%', bins: [0, 1.5, 3.1, 7.6, 7.7], colors: ['#1A9850', '#91CF60', '#FDAE61', '#D73027'], decimals: 1, dataKey: 'ISP1' },
+        ISP2: { label: 'ISP - G1-G2 (%)', unit: '%', bins: [0, 3.8, 5.0, 7.5, 15, 15.1], colors: ['#1A9850', '#A6D96A', '#FEE08B', '#F46D43', '#D73027'], decimals: 1, dataKey: 'ISP1' },
         pH_eau: { label: 'pH eau', unit: '', bins: [4, 5, 5.5, 6, 6.5, 7, 7.5, 8], reverse: false, decimals: 2, palette: 'diverging' },
         pH_tampon: { label: 'pH tampon', unit: '', bins: [5, 5.5, 6, 6.5, 7, 7.5, 8], reverse: false, decimals: 2, palette: 'diverging' },
         Besoin_en_chaux: { label: 'Besoin en chaux (t/ha)', unit: 't/ha', bins: [0, 2, 4, 6, 8, 10, 15], reverse: true, decimals: 1, moyenneOnly: true, note: 'Calcul selon le Guide de référence en fertilisation 2e édition du CRAAQ, avec une cible de pH de 6,5.' },
@@ -1971,7 +1971,8 @@
           
           const locationData = getLocationData(normalizedCode);
           const indicator = CONFIG.indicators[state.indicator];
-          const value = locationData ? locationData[state.indicator] : null;
+          const dataKey = indicator.dataKey || state.indicator;
+          const value = locationData ? locationData[dataKey] : null;
           const displayValue = value !== null && value !== undefined ? 
             `${value.toFixed(indicator.decimals)} ${indicator.unit}` : '-';
           
@@ -2068,6 +2069,8 @@
     function getLocationData(code) {
       const levelData = state.data[state.level];
       const normalizedCode = normalizeCode(code);
+      const indicator = CONFIG.indicators[state.indicator];
+      const dataKey = indicator.dataKey || state.indicator;
       
       if (state.year === 'all') {
         // Use pooled _all data - return the aggregated entry for this code
@@ -2150,7 +2153,8 @@
       // Create color mapping - use strings only
       const colorMap = {};
       filteredData.forEach(d => {
-        const value = d[state.indicator];
+        const dataKey = indicator.dataKey || state.indicator;
+        const value = d[dataKey];
         if (value !== null && value !== undefined) {
 const color = getColorForValue(value, indicator);
           const codeStr = String(d.code);
@@ -2300,15 +2304,19 @@ const color = getColorForValue(value, indicator);
         
         let rowHtml = `<td title="${name}">${name}</td>`;
         
+        // Get dataKey for this indicator
+        const indicator = CONFIG.indicators[state.indicator];
+        const dataKey = indicator.dataKey || state.indicator;
+        
         // "Toutes les années" column - always use pooled data
         const pooledEntry = pooledData.find(d => d.code === code);
-        const pooledValue = pooledEntry ? pooledEntry[state.indicator] : null;
+        const pooledValue = pooledEntry ? pooledEntry[dataKey] : null;
         rowHtml += `<td>${formatValue(pooledValue, state.indicator)}</td>`;
         
         // Year columns - always show all years
         allYears.forEach(year => {
           const yearData = dataByCode[code] ? dataByCode[code][year] : null;
-          const value = yearData ? yearData[state.indicator] : null;
+          const value = yearData ? yearData[dataKey] : null;
           rowHtml += `<td>${formatValue(value, state.indicator)}</td>`;
         });
         
