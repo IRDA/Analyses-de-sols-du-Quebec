@@ -1,19 +1,19 @@
 # Analyse de sols du Québec (2007-2024)
 
-Tableaux de bord interactifs présentant l'évolution spatio-temporelle d'indicateurs de la chimie-fertilité des sols agricoles du Québec, basés sur plus de 600 000 échantillons de sols.
+Tableaux de bord interactifs présentant l'évolution spatio-temporelle d'indicateurs de la chimie-fertilité des sols agricoles du Québec, basés sur plus de 600 000 échantillons de sols provenant de laboratoires privés.
 
 ## Aperçu
 
-Ce tableau de bord permet de visualiser et comparer les données d'analyses de sols à l'échelle des régions administratives et des MRC du Québec sur la période 2007-2024. Les données provenant de deux laboratoires privés ont été acquises au cours du temps par le MAPAQ et sont présentées ici dans le cadre de son mécanisme mis en oeuvre pour suivre l'état de santé des sols agricoles du Québec.
+Ce tableau de bord permet de visualiser et comparer les données d'analyses de sols à l'échelle des régions administratives et des MRC du Québec, de 2007 à 2024. Les données provenant de deux laboratoires privés ont été acquises au cours du temps par le MAPAQ et sont présentées ici dans le cadre de son mécanisme mis en oeuvre pour suivre l'état de santé des sols agricoles du Québec.
 
 ### Indicateurs présentés
 
 - **P, K, Ca, Mg** Phosphore, potassium, calcium, magnésium extraits en solution Mehlich-3 et exprimés en kg/ha
 - **Al, Fe, Mn, Cu** Aluminium, fer, manganèse, cuivre extraits en solution Mehlich-3 et exprimés en ppm ou mg/kg 
 
-- **pH eau** - pH mesuré dans un ratio sol-eau de 1:1, exprime le niveau d'acidité du sol
-- **pH tampon** - pH mesuré en solution SMP, exprime le pouvoir tampon du sol
-- **Besoin en chaux (t/ha)**  - Amendement calcique recommandé
+- **pH eau** - pH mesuré dans un ratio sol-eau de 1:1; exprime le niveau d'acidité du sol
+- **pH tampon** - pH mesuré en solution SMP; exprime la réserve d'acidité du sol
+- **Besoin en chaux (t/ha)**  - Amendement calcique recommandé pour un IVA (Indice de Valeur Alcalinisante) de 100 %
 
 - **Matière organique (%)**  - Teneur en matière organique du sol
 - **Analyses >= 4% MO (%)**  - Pourcentage d'échantillons de sol avec plus de 4 % de MO, le seuil ciblé dans le Plan d'agriculture durable
