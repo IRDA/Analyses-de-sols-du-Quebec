@@ -1,29 +1,35 @@
-# Analyse des sols du Québec (2007-2024)
+# Analyse de sols du Québec (2007-2024)
 
-Dashboard interactif présentant l'évolution spatio-temporelle des indicateurs de fertilité des sols agricoles du Québec, basé sur plus de 600 000 analyses d'échantillons de sols.
-
+Tableaux de bord interactifs présentant l'évolution spatio-temporelle d'indicateurs de chimie-fertilité, basés sur les analyses de plus de 600 000 échantillons de sols agricoles du Québec.
 ## Aperçu
 
-Ce tableau de bord permet de visualiser et comparer les données d'analyses de sols à l'échelle des régions administratives et des MRC du Québec sur la période 2007-2024.
+Ce tableau de bord permet de visualiser et de comparer les données d'analyses de sols à l'échelle des régions administratives et des MRC du Québec, de 2007 à 2024. Les données provenant de deux laboratoires privés ont été acquises au cours du temps par le MAPAQ et sont présentées ici dans le cadre du mécanisme mis en oeuvre pour suivre l'état de santé des sols agricoles du Québec.
 
-### Indicateurs disponibles
+### Indicateurs présentés
 
-- **Phosphore** (kg/ha) - Phosphore assimilable
-- **Indice de saturation en phosphore (ISP)** (%) - Risque environnemental
-- **pH eau** - Acidité du sol
-- **Besoin en chaux** (t/ha) - Amendement calcique recommandé
-- **Matière organique** (%) - Teneur en MO
-- **Analyses >= 4% MO** (%) - Proportion atteignant le seuil du Plan d'agriculture durable
+- **P, K, Ca, Mg** - Phosphore, potassium, calcium, magnésium extraits en solution Mehlich-3 et exprimés en kg/ha
+- **Al, Fe, Mn, Cu** - Aluminium, fer, manganèse, cuivre extraits en solution Mehlich-3 et exprimés en ppm ou mg/kg 
+
+- **pH eau** - pH mesuré dans un ratio sol-eau de 1:1; exprime le niveau d'acidité du sol
+- **pH tampon** - pH mesuré en solution SMP; exprime la réserve d'acidité du sol
+- **Besoin en chaux (t/ha)**  - Amendement calcique recommandé pour un IVA (Indice de Valeur Alcalinisante) de 100 %
+
+- **Matière organique (%)**  - Teneur en matière organique du sol
+- **Analyses >= 4% MO (%)**  - Pourcentage d'échantillons de sol avec plus de 4 % de MO, le seuil ciblé dans le Plan d'agriculture durable
+
+- **ISP - G1** (%) - Indice de saturation en phosphore et risque environnemental dans les sols lourds (groupe textural G1)
+- **ISP - G2-G3** (%) - Indice de saturation en phosphore et risque environnemental dans les sols moyens et légers (groupes texturaux G2 et G3)
+- **CEC (méq/100g)**  - Capacité d'échange cationique calculée avec la somme des bases et le pH tampon
 
 ### Fonctionnalités
 
 - Visualisation cartographique interactive (MapLibre GL + PMTiles)
-- Basculement entre niveaux géographiques (Région / MRC)
+- Deux échelles géographiques (Région / Municipalité régionale de comté (MRC))
 - Choix de la statistique (Médiane / Moyenne)
 - Filtrage par année ou vue globale
 - Tableau de données triable et filtrable
-- Export CSV des données
-- Interface responsive (mobile/tablette/desktop)
+- Exportation des données en fichiers CSV
+- Interface réactive (mobile/tablette/desktop)
 
 ## Technologies
 
@@ -43,12 +49,12 @@ Ce tableau de bord permet de visualiser et comparer les données d'analyses de s
 
 ## Source des données
 
-Les données proviennent de l'analyse d'échantillons de sols recueillis par des laboratoires privés entre 2007 et 2024. Elles ont été centralisées, nettoyées et agrégées par l'IRDA.
+Les données proviennent d'analyses d'échantillons de sols acquises par le MAPAQ auprès de deux laboratoires privés entre 2007 et 2024. Elles ont été filtrées, nettoyées, géolocalisées, et agrégées par l'IRDA.
 
 ### Limites d'interprétation
 
 - La géolocalisation repose sur les codes postaux (incertitude spatiale variable)
-- Les pratiques d'échantillonnage ne sont pas aléatoires ni systématiques
+- Les protocoles d'échantillonnage des sols ne sont pas aléatoires ni systématiques
 - Certains échantillons peuvent provenir de milieux non agricoles
 
 ## Contact
