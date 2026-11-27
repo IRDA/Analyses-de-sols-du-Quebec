@@ -1132,6 +1132,7 @@
               <strong>Mehlich 3 :</strong> P, K, Ca, Mg, Al, Fe, Mn, Cu<br>
               <strong>pH :</strong> pH eau, pH tampon, Besoin en chaux<br>
               <strong>Matière organique :</strong> MO (%), Proportion MO ≥ 4%<br>
+              <strong>Émissions de N₂O :</strong> Facteur d'émission (%) - cultures annuelles et pérennes<br>
               <strong>Autres :</strong> Indice de saturation en P, CEC
             </div>
           </div>
@@ -1245,6 +1246,10 @@
               <optgroup label="Matière organique">
                 <option value="Matiere_organique">Matière organique (%)</option>
                 <option value="MO4">Analyses >= 4% MO (%)</option>
+              </optgroup>
+              <optgroup label="Facteur d'Émission du N₂O">
+                <option value="EF_N2O_annuelles">FE N₂O - cultures annuelles (%)</option>
+                <option value="EF_N2O_perennes">FE N₂O - cultures pérennes (%)</option>
               </optgroup>
               <optgroup label="Autres">
                 <option value="ISP1">ISP - G1 (%)</option>
@@ -1545,7 +1550,12 @@
         Besoin_en_chaux: { label: 'Besoin en chaux (t/ha)', unit: 't/ha', bins: [0, 2, 4, 6, 8, 10, 15], reverse: true, decimals: 1, moyenneOnly: true, note: 'Calcul selon le Guide de référence en fertilisation 2e édition du CRAAQ, avec une cible de pH de 6,5.' },
         Matiere_organique: { label: 'Matière organique (%)', unit: '%', bins: [0, 2, 3, 4, 5, 6, 8, 12], reverse: false, decimals: 1 },
         MO4: { label: 'Analyses >= 4% MO (%)', unit: '%', bins: [0, 20, 40, 60, 80, 100], reverse: false, decimals: 0, moyenneOnly: true, note: 'Proportion d\'échantillons avec MO >= 4%. Seule la moyenne est pertinente pour cet indicateur.' },
-        Capacite_dechange_cationique: { label: 'CEC (méq/100g)', unit: 'méq/100g', bins: [0, 10, 15, 20, 25, 30, 40], reverse: false, decimals: 1 }
+        Capacite_dechange_cationique: { label: 'CEC (méq/100g)', unit: 'méq/100g', bins: [0, 10, 15, 20, 25, 30, 40], reverse: false, decimals: 1 },
+        // Facteurs d'émission de N2O (valeur unique pour toute la période : données « _all » seulement)
+        // pooledOnly : toujours lire les tables *_all, quelle que soit l'année choisie
+        // sdKey : écart-type affiché dans l'infobulle ; minKey / maxKey : minimum et maximum affichés dans l'infobulle ; hideCount : ne pas afficher le nombre d'analyses de sol
+        EF_N2O_annuelles: { label: 'FE N₂O - cultures annuelles (%)', unit: '%', bins: [0, 1.5, 2.0, 2.25, 2.5, 2.75, 3.0, 4.0], colors: ['#ffffb2', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#b10026'], decimals: 2, pooledOnly: true, hideCount: true, sdKey: 'EF_N2O_annuelles_SD', minKey: 'EF_N2O_annuelles_min', maxKey: 'EF_N2O_annuelles_max', noteKey: 'noteEF' },
+        EF_N2O_perennes: { label: 'FE N₂O - cultures pérennes (%)', unit: '%', bins: [0, 0.6, 0.9, 1.1, 1.3, 1.6, 2.1], colors: ['#ffffb2', '#fed976', '#feb24c', '#fd8d3c', '#f03b20', '#bd0026'], decimals: 2, pooledOnly: true, hideCount: true, sdKey: 'EF_N2O_perennes_SD', minKey: 'EF_N2O_perennes_min', maxKey: 'EF_N2O_perennes_max', noteKey: 'noteEF' }
       },
       colors: {
         default: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#d9ef8b', '#a6d96a', '#66bd63', '#1a9850'],
@@ -1585,7 +1595,7 @@
         modalDescTitle: 'Description',
         modalDescText: 'Ce tableau de bord interactif présente l\'évolution spatio-temporelle des indicateurs de fertilité des sols agricoles du Québec. Développé par l\'IRDA dans le cadre du projet « Mécanismes de suivi de la santé des sols » en partenariat avec le MAPAQ, il permet de visualiser les tendances des analyses de sols à travers le territoire. Les données proviennent de deux laboratoires privés et ont été centralisées, nettoyées et agrégées.',
         modalIndTitle: 'Indicateurs disponibles',
-        modalIndList: '<strong>Mehlich 3 :</strong> P, K, Ca, Mg, Al, Fe, Mn, Cu<br><strong>pH :</strong> pH eau, pH tampon, Besoin en chaux<br><strong>Matière organique :</strong> MO (%), Proportion MO ≥ 4%<br><strong>Autres :</strong> Indice de saturation en P, CEC',
+        modalIndList: '<strong>Mehlich 3 :</strong> P, K, Ca, Mg, Al, Fe, Mn, Cu<br><strong>pH :</strong> pH eau, pH tampon, Besoin en chaux<br><strong>Matière organique :</strong> MO (%), Proportion MO ≥ 4%<br><strong>Émissions de N₂O :</strong> Facteur d\'émission (%) - cultures annuelles et pérennes<br><strong>Autres :</strong> Indice de saturation en P, CEC',
         modalMethodTitle: 'Méthodologie',
         modalMethodText: 'Les données sont agrégées à deux niveaux géographiques : régions administratives et MRC. La géolocalisation est basée sur les codes postaux des producteurs. Les valeurs présentées sont des médianes ou moyennes selon l\'indicateur. Un minimum de 10 observations par entité géographique est requis pour l\'affichage des données.',
         modalWarning: '<strong>Note d\'interprétation :</strong> La géolocalisation par code postal engendre une incertitude spatiale. Les pratiques d\'échantillonnage ne sont ni aléatoires ni systématiques, ce qui limite la comparabilité interannuelle à fine échelle.',
@@ -1595,11 +1605,16 @@
         statOnlyMean: 'Seule la moyenne est disponible pour cet indicateur.',
         noteChaux: 'Calcul selon le Guide de référence en fertilisation 2e édition du CRAAQ, avec une cible de pH de 6,5.',
         noteMO4: 'Proportion d\'échantillons avec MO >= 4%. Seule la moyenne est pertinente pour cet indicateur.',
+        noteEF: 'Facteur d\'émission de N₂O (% de l\'N appliqué émis en N-N₂O). Calculé selon la méthode de Rochette et al. (2018) pour les engrais minéraux. Valeur unique pour toute la période.',
+        singleValue: 'Valeur unique (toutes années)',
+        sdLabel: 'Écart-type',
+        rangeLabel: 'Min – max',
         // Indicator groups
         groupMehlichKg: 'Mehlich 3 (kg/ha)',
         groupMehlichPpm: 'Mehlich 3 (ppm)',
         groupPH: 'pH et chaulage',
         groupOM: 'Matière organique',
+        groupN2O: 'Facteur d\'émission du N₂O',
         groupOther: 'Autres',
         // Indicators
         indPhosphore: 'P - Phosphore',
@@ -1615,6 +1630,8 @@
         indChaux: 'Besoin en chaux (t/ha)',
         indMO: 'Matière organique (%)',
         indMO4: 'Analyses >= 4% MO (%)',
+        indEFann: 'FE N₂O - cultures annuelles (%)',
+        indEFper: 'FE N₂O - cultures pérennes (%)',
         indISP1: 'ISP - G1 (%)',
         indISP2: 'ISP - G1-G2 (%)',
         indCEC: 'CEC (méq/100g)',
@@ -1637,6 +1654,8 @@
         labelBesoin_en_chaux: 'Besoin en chaux (t/ha)',
         labelMatiere_organique: 'Matière organique (%)',
         labelMO4: 'Analyses >= 4% MO (%)',
+        labelEF_N2O_annuelles: 'FE N₂O - cultures annuelles (%)',
+        labelEF_N2O_perennes: 'FE N₂O - cultures pérennes (%)',
         labelCapacite_dechange_cationique: 'CEC (méq/100g)',
         // Table title
         byRegion: 'par région',
@@ -1679,7 +1698,7 @@
         modalDescTitle: 'Description',
         modalDescText: 'This interactive dashboard presents the spatio-temporal evolution of soil fertility indicators in Quebec agricultural soils. Developed by IRDA as part of the "Soil Health Monitoring Mechanisms" project in partnership with MAPAQ, it allows visualization of soil analysis trends across the territory. Data comes from two private laboratories and has been centralized, cleaned and aggregated.',
         modalIndTitle: 'Available indicators',
-        modalIndList: '<strong>Mehlich 3:</strong> P, K, Ca, Mg, Al, Fe, Mn, Cu<br><strong>pH:</strong> Water pH, Buffer pH, Lime requirement<br><strong>Organic matter:</strong> OM (%), Proportion OM ≥ 4%<br><strong>Other:</strong> P saturation index, CEC',
+        modalIndList: '<strong>Mehlich 3:</strong> P, K, Ca, Mg, Al, Fe, Mn, Cu<br><strong>pH:</strong> Water pH, Buffer pH, Lime requirement<br><strong>Organic matter:</strong> OM (%), Proportion OM ≥ 4%<br><strong>N₂O emissions:</strong> Emission factor (%) - annual and perennial crops<br><strong>Other:</strong> P saturation index, CEC',
         modalMethodTitle: 'Methodology',
         modalMethodText: 'Data are aggregated at two geographic levels: administrative regions and RCMs. Geolocation is based on producer postal codes. Values presented are medians or means depending on the indicator. A minimum of 10 observations per geographic entity is required for data display.',
         modalWarning: '<strong>Interpretation note:</strong> Geolocation by postal code creates spatial uncertainty. Sampling practices are neither random nor systematic, which limits inter-annual comparability at fine scales.',
@@ -1689,11 +1708,16 @@
         statOnlyMean: 'Only the mean is available for this indicator.',
         noteChaux: 'Calculation according to the CRAAQ Fertilization Reference Guide 2nd edition, with a target pH of 6.5.',
         noteMO4: 'Proportion of samples with OM >= 4%. Only the mean is relevant for this indicator.',
+        noteEF: 'N₂O emission factor (% of applied N emitted as N-N₂O). Calculated with the Rochette et al. (2018) method for mineral fertilizers. Single value for the whole period.',
+        singleValue: 'Single value (all years)',
+        sdLabel: 'Standard deviation',
+        rangeLabel: 'Min – max',
         // Indicator groups
         groupMehlichKg: 'Mehlich 3 (kg/ha)',
         groupMehlichPpm: 'Mehlich 3 (ppm)',
         groupPH: 'pH and liming',
         groupOM: 'Organic matter',
+        groupN2O: 'N₂O Emission Factor',
         groupOther: 'Other',
         // Indicators
         indPhosphore: 'P - Phosphorus',
@@ -1709,6 +1733,8 @@
         indChaux: 'Lime requirement (t/ha)',
         indMO: 'Organic matter (%)',
         indMO4: 'Samples >= 4% OM (%)',
+        indEFann: 'N₂O EF - annual crops (%)',
+        indEFper: 'N₂O EF - perennial crops (%)',
         indISP: 'P saturation index (%)',
         indCEC: 'CEC (meq/100g)',
         // Table header
@@ -1730,6 +1756,8 @@
         labelBesoin_en_chaux: 'Lime requirement (t/ha)',
         labelMatiere_organique: 'Organic matter (%)',
         labelMO4: 'Samples >= 4% OM (%)',
+        labelEF_N2O_annuelles: 'N₂O EF - annual crops (%)',
+        labelEF_N2O_perennes: 'N₂O EF - perennial crops (%)',
         labelCapacite_dechange_cationique: 'CEC (meq/100g)',
         // Table title
         byRegion: 'by region',
@@ -1787,6 +1815,8 @@
         'Besoin_en_chaux': state.lang === 'fr' ? 'Chaux' : 'Lime',
         'Matiere_organique': 'MO',
         'MO4': 'MO >= 4%',
+        'EF_N2O_annuelles': state.lang === 'fr' ? 'FE N₂O annuelles' : 'N₂O EF annual',
+        'EF_N2O_perennes': state.lang === 'fr' ? 'FE N₂O pérennes' : 'N₂O EF perennial',
         'Capacite_dechange_cationique': 'CEC'
       };
       return shortLabels[indicatorKey] || indicatorKey;
@@ -2005,6 +2035,15 @@
           const value = locationData ? locationData[dataKey] : null;
           const displayValue = value !== null && value !== undefined ? 
             `${value.toFixed(indicator.decimals)} ${indicator.unit}` : '-';
+          const sdValue = indicator.sdKey && locationData ? locationData[indicator.sdKey] : null;
+          const sdHtml = sdValue !== null && sdValue !== undefined && value !== null && value !== undefined ?
+            `<div class="popup-count">${t('sdLabel')} : ${sdValue.toFixed(indicator.decimals)} ${indicator.unit}</div>` : '';
+          const minValue = indicator.minKey && locationData ? locationData[indicator.minKey] : null;
+          const maxValue = indicator.maxKey && locationData ? locationData[indicator.maxKey] : null;
+          const rangeHtml = minValue != null && maxValue != null && value != null ?
+            `<div class="popup-count">${t('rangeLabel')} : ${minValue.toFixed(indicator.decimals)} – ${maxValue.toFixed(indicator.decimals)} ${indicator.unit}</div>` : '';
+          const countHtml = !indicator.hideCount && locationData && locationData.n ?
+            `<div class="popup-count">${formatNumber(locationData.n)} ${t('analyses')}</div>` : '';
           
           state.hoverPopup
             .setLngLat(e.lngLat)
@@ -2013,7 +2052,9 @@
                 <div class="popup-title">${name}</div>
                 <div class="popup-indicator">${getIndicatorLabel(state.indicator)}</div>
                 <div class="popup-value">${displayValue}</div>
-                ${locationData && locationData.n ? `<div class="popup-count">${formatNumber(locationData.n)} ${t('analyses')}</div>` : ''}
+                ${sdHtml}
+                ${rangeHtml}
+                ${countHtml}
               </div>
             `)
             .addTo(state.map);
@@ -2102,8 +2143,9 @@
       const indicator = CONFIG.indicators[state.indicator];
       const dataKey = indicator.dataKey || state.indicator;
       
-      if (state.year === 'all') {
+      if (state.year === 'all' || indicator.pooledOnly) {
         // Use pooled _all data - return the aggregated entry for this code
+        // (pooledOnly indicators, e.g. N2O emission factors, only exist in *_all tables)
         const pooledData = levelData[`${state.stat}_all`];
         if (!pooledData) return null;
         return pooledData.find(d => normalizeCode(d.code) === normalizedCode) || null;
@@ -2126,7 +2168,9 @@
     // Update year indicator on map
     function updateYearIndicator() {
       const indicator = document.getElementById('year-indicator');
-      if (state.year === 'all') {
+      if (CONFIG.indicators[state.indicator].pooledOnly) {
+        indicator.textContent = t('singleValue');
+      } else if (state.year === 'all') {
         indicator.textContent = t('allYears');
       } else {
         indicator.textContent = state.year;
@@ -2151,7 +2195,7 @@
       const indicator = CONFIG.indicators[state.indicator];
       
       let filteredData;
-      if (state.year === 'all') {
+      if (state.year === 'all' || indicator.pooledOnly) {
         // Use pooled _all data directly (no Annee column in pooled data)
         filteredData = levelData[`${state.stat}_all`];
       } else {
@@ -2288,9 +2332,10 @@ const color = getColorForValue(value, indicator);
         return;
       }
       
-      // Get all years from yearly data
-      const allYears = [...new Set(yearlyData.map(d => String(d.Annee)))].sort();
-      const allCodes = [...new Set(yearlyData.map(d => d.code))];
+      // Get all years from yearly data (none for pooledOnly indicators: single value for the period)
+      const pooledOnly = !!CONFIG.indicators[state.indicator].pooledOnly;
+      const allYears = pooledOnly ? [] : [...new Set(yearlyData.map(d => String(d.Annee)))].sort();
+      const allCodes = pooledOnly ? [...new Set(pooledData.map(d => d.code))] : [...new Set(yearlyData.map(d => d.code))];
       
       // Build year -> data map for each code
       const dataByCode = {};
@@ -2318,7 +2363,7 @@ const color = getColorForValue(value, indicator);
       const regionPooled = state.data.region[`${state.stat}_all`];
       const statLabel = state.stat === 'mediane' ? t('median') : t('mean');
       const titleEl = document.getElementById('table-title');
-      if (state.year === 'all') {
+      if (state.year === 'all' || indicator.pooledOnly) {
         const provEntry = regionPooled ? regionPooled.find(d => d.code === 'QC') : null;
         const provValue = provEntry ? provEntry[dataKey] : null;
         if (provValue != null) {
@@ -2582,7 +2627,10 @@ const color = getColorForValue(value, indicator);
       }
       
       // Show indicator note if available
-      if (indicator.moyenneOnly) {
+      if (indicator.noteKey) {
+        indicatorNote.textContent = t(indicator.noteKey);
+        indicatorNote.style.display = 'block';
+      } else if (indicator.moyenneOnly) {
         if (state.indicator === 'Besoin_en_chaux') {
           indicatorNote.textContent = t('noteChaux');
         } else if (state.indicator === 'MO4') {
@@ -2615,19 +2663,21 @@ const color = getColorForValue(value, indicator);
       let tableData = state.year === 'all' ? statData : statData.filter(d => d.Annee === state.year);
       
       // Build CSV content
-      const headers = ['Nom', 'Code', 'N', 'Phosphore', 'ISP', 'pH', 'Chaux', 'MO', 'MO4'];
+      const headers = ['Nom', 'Code', 'N', 'Phosphore', 'ISP', 'pH', 'Chaux', 'MO', 'MO4', 'FE_N2O_annuelles', 'FE_N2O_perennes'];
       const rows = tableData.map(row => {
         const name = getName(state.level, row.code) || row.code;
         return [
           `"${name}"`,
           row.code,
           row.n || '',
-          row.Phosphore !== null ? row.Phosphore.toFixed(2) : '',
-          row.ISP1 !== null ? row.ISP1.toFixed(2) : '',
-          row.pH_eau !== null ? row.pH_eau.toFixed(2) : '',
-          row.Besoin_en_chaux !== null ? row.Besoin_en_chaux.toFixed(2) : '',
-          row.Matiere_organique !== null ? row.Matiere_organique.toFixed(2) : '',
-          row.MO4 !== null ? row.MO4.toFixed(2) : ''
+          row.Phosphore != null ? row.Phosphore.toFixed(2) : '',
+          row.ISP1 != null ? row.ISP1.toFixed(2) : '',
+          row.pH_eau != null ? row.pH_eau.toFixed(2) : '',
+          row.Besoin_en_chaux != null ? row.Besoin_en_chaux.toFixed(2) : '',
+          row.Matiere_organique != null ? row.Matiere_organique.toFixed(2) : '',
+          row.MO4 != null ? row.MO4.toFixed(2) : '',
+          row.EF_N2O_annuelles != null ? row.EF_N2O_annuelles.toFixed(2) : '',
+          row.EF_N2O_perennes != null ? row.EF_N2O_perennes.toFixed(2) : ''
         ].join(';');
       });
       
@@ -2788,7 +2838,9 @@ const color = getColorForValue(value, indicator);
       // Update indicator note if shown
       const indicator = CONFIG.indicators[state.indicator];
       const indicatorNote = document.getElementById('indicator-note');
-      if (indicator.moyenneOnly) {
+      if (indicator.noteKey) {
+        indicatorNote.textContent = t(indicator.noteKey);
+      } else if (indicator.moyenneOnly) {
         if (state.indicator === 'Besoin_en_chaux') {
           indicatorNote.textContent = t('noteChaux');
         } else if (state.indicator === 'MO4') {
@@ -2831,6 +2883,10 @@ const color = getColorForValue(value, indicator);
         <optgroup label="${t('groupOM')}">
           <option value="Matiere_organique">${t('indMO')}</option>
           <option value="MO4">${t('indMO4')}</option>
+        </optgroup>
+        <optgroup label="${t('groupN2O')}">
+          <option value="EF_N2O_annuelles">${t('indEFann')}</option>
+          <option value="EF_N2O_perennes">${t('indEFper')}</option>
         </optgroup>
         <optgroup label="${t('groupOther')}">
           <option value="ISP1">${t('indISP1')}</option>
